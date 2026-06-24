@@ -28,6 +28,9 @@ struct ProcessListView: View {
             TableColumn("Name", value: \.name) { p in
                 HStack(spacing: 4) {
                     Image(nsImage: IconProvider.shared.appIcon(for: p))
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16)
                         .help(iconTooltip(for: p))
                     Text(p.name).lineLimit(1)
                 }

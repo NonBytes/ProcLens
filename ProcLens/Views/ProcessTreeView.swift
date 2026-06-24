@@ -9,6 +9,9 @@ struct ProcessTreeView: View {
         List(rootNodes, id: \.id, children: \.children, selection: $selectedPID) { node in
             HStack(spacing: 6) {
                 Image(nsImage: IconProvider.shared.appIcon(for: node.process))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16)
 
                 Text(node.process.name)
                     .lineLimit(1)

@@ -9,10 +9,13 @@ final class ProcessManager {
     var refreshInterval: TimeInterval = 2.0 {
         didSet { restartTimer() }
     }
-    let historyTracker = HistoryTracker()
+    @ObservationIgnored let historyTracker = HistoryTracker()
 
-    private var previousCPUTimes: [Int32: (user: UInt64, system: UInt64, time: UInt64)] = [:]
-    private var timer: Timer?
+    @ObservationIgnored private var previousCPUTimes: [Int32: (user: UInt64, system: UInt64, time: UInt64)] = [:]
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var nameCache: [Int32: String] = [:]
+    @ObservationIgnored private var pathCache: [Int32: String] = [:]
+    @ObservationIgnored private var userCache: [uid_t: String] = [:]
 
     func startMonitoring() {
         refresh()
@@ -99,6 +102,11 @@ final class ProcessManager {
             result.append(item)
         }
         previousCPUTimes = newCPUTimes
+        let alivePids = Set(result.map(\.pid))
+        for pid in nameCache.keys where !alivePids.contains(pid) {
+            nameCache.removeValue(forKey: pid)
+            pathCache.removeValue(forKey: pid)
+        }
         return result
     }
 
@@ -111,8 +119,13 @@ final class ProcessManager {
         var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, pid]
         guard sysctl(&mib, 4, &kinfo, &size, nil, 0) == 0, size > 0 else { return nil }
 
-        let name = fetchProcessName(pid: pid, kinfo: kinfo)
-        let path = fetchProcessPath(pid: pid)
+        let name: String
+        if let cached = nameCache[pid] { name = cached }
+        else { name = fetchProcessName(pid: pid, kinfo: kinfo); nameCache[pid] = name }
+
+        let path: String
+        if let cached = pathCache[pid] { path = cached }
+        else { path = fetchProcessPath(pid: pid); pathCache[pid] = path }
 
         var taskInfo = proc_taskinfo()
         let taskInfoSize = proc_pidinfo(
@@ -139,8 +152,9 @@ final class ProcessManager {
 
         let uid = kinfo.kp_eproc.e_ucred.cr_uid
         let userName: String
-        if let pw = getpwuid(uid) { userName = String(cString: pw.pointee.pw_name) }
-        else { userName = "\(uid)" }
+        if let cached = userCache[uid] { userName = cached }
+        else if let pw = getpwuid(uid) { userName = String(cString: pw.pointee.pw_name); userCache[uid] = userName }
+        else { userName = "\(uid)"; userCache[uid] = userName }
 
         let status = ProcessStatus(rawValue: kinfo.kp_proc.p_stat) ?? .unknown
         let diskIO = fetchDiskIO(pid: pid)
