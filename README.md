@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="ProcLens/Assets.xcassets/AppIcon.appiconset/icon_1024.png" width="128" height="128" alt="ProcLens Icon">
+  <img src="ProcLens/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png" width="128" height="128" alt="ProcLens Icon">
 </p>
 
 <h1 align="center">ProcLens</h1>
