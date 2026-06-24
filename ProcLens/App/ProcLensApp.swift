@@ -16,7 +16,7 @@ enum AppTheme: String, CaseIterable {
 }
 
 @main
-struct MacPHApp: App {
+struct ProcLensApp: App {
     @State private var processManager = ProcessManager()
     @State private var systemMonitor = SystemMonitor()
     @AppStorage("appTheme") private var theme: String = AppTheme.system.rawValue

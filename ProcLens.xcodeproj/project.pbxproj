@@ -1,0 +1,414 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		07A009E8C1E9E35422FD325A /* ProcessTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DC445E436C0C277560C276 /* ProcessTreeView.swift */; };
+		1529F84B0C4B378CEBA1BF92 /* SystemStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7CA3167667B86E32E81AC78 /* SystemStatsView.swift */; };
+		1BF6629862ECA8375E061AB0 /* HistoryTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D43D575B3AC6CD4303D51A9 /* HistoryTracker.swift */; };
+		2D9851105A85E0BFC2C76D68 /* DiskIO.c in Sources */ = {isa = PBXBuildFile; fileRef = 46D0574C0F46A02864309BA6 /* DiskIO.c */; };
+		2EC940CD0949F5A455D481B4 /* ProcessListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4689B9F2A4BAD14AECAD2F5 /* ProcessListView.swift */; };
+		3B273F081F021056DC4F5CB6 /* ProcessItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4897626BE83B2D76DBDFBCDC /* ProcessItem.swift */; };
+		50EDCE8D181F5B507E00AA81 /* ProcessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF8967AA8A5778B2FEA7B0B /* ProcessManager.swift */; };
+		625039BD8C467799C2602446 /* DetailTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7209C9F12066022F5D5C236E /* DetailTabsView.swift */; };
+		63AC803399AE298FDC9AD51E /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B717BC16D0A195174D7FFF6 /* SystemMonitor.swift */; };
+		7E896C4F2672DF9772620460 /* IconProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E15B4BBA0F05903063D2D4E7 /* IconProvider.swift */; };
+		A2502AFE605F7E4FC80496F8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F76DEF0CEBB5E07A5DDCDC /* ContentView.swift */; };
+		A3F2EC9BED0EB2DCA7A357D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C6A8AC69681C5DA42AAE808A /* Assets.xcassets */; };
+		B01D224F035A7BA4686B713C /* ProcLensApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170BF9C5C746A34D4BFA0938 /* ProcLensApp.swift */; };
+		B0F262FAA61F861616E76BDF /* ProcessDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90C6C33EB5DA59408970E7AD /* ProcessDetails.swift */; };
+		E738BF2F4C2F7DCCB4C161C2 /* ProcessDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDF8DF3DFC68F989D8858F4 /* ProcessDetailView.swift */; };
+		E8753EEED314424E8394F761 /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130A95731DB2D73425CAE9AB /* SparklineView.swift */; };
+		F5F2A00142FBA67E6FFADBEA /* DetailModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C473C7A6C2CD4A5E1EE87722 /* DetailModels.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		05A79902048DCC074459D53B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		08AD9EC105911CA720EFFF41 /* ProcLens-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ProcLens-Bridging-Header.h"; sourceTree = "<group>"; };
+		130A95731DB2D73425CAE9AB /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
+		170BF9C5C746A34D4BFA0938 /* ProcLensApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcLensApp.swift; sourceTree = "<group>"; };
+		20DC445E436C0C277560C276 /* ProcessTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessTreeView.swift; sourceTree = "<group>"; };
+		2D43D575B3AC6CD4303D51A9 /* HistoryTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTracker.swift; sourceTree = "<group>"; };
+		39B518333E6C68E988E3AC7D /* ProcLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProcLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3BF8967AA8A5778B2FEA7B0B /* ProcessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessManager.swift; sourceTree = "<group>"; };
+		424F4B2C0DFDDF9CE6C4A0DB /* DiskIO.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiskIO.h; sourceTree = "<group>"; };
+		46D0574C0F46A02864309BA6 /* DiskIO.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DiskIO.c; sourceTree = "<group>"; };
+		4897626BE83B2D76DBDFBCDC /* ProcessItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessItem.swift; sourceTree = "<group>"; };
+		5B717BC16D0A195174D7FFF6 /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
+		7209C9F12066022F5D5C236E /* DetailTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailTabsView.swift; sourceTree = "<group>"; };
+		72F76DEF0CEBB5E07A5DDCDC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		90C6C33EB5DA59408970E7AD /* ProcessDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessDetails.swift; sourceTree = "<group>"; };
+		B7CA3167667B86E32E81AC78 /* SystemStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsView.swift; sourceTree = "<group>"; };
+		C1CBA61AC547C368D18A1E57 /* ProcLens.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ProcLens.entitlements; sourceTree = "<group>"; };
+		C473C7A6C2CD4A5E1EE87722 /* DetailModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailModels.swift; sourceTree = "<group>"; };
+		C6A8AC69681C5DA42AAE808A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DFDF8DF3DFC68F989D8858F4 /* ProcessDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessDetailView.swift; sourceTree = "<group>"; };
+		E15B4BBA0F05903063D2D4E7 /* IconProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconProvider.swift; sourceTree = "<group>"; };
+		E4689B9F2A4BAD14AECAD2F5 /* ProcessListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessListView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		2713B72298D0500BD6BBB7F1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				39B518333E6C68E988E3AC7D /* ProcLens.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		2FF3043058DB1E867B189E1C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				170BF9C5C746A34D4BFA0938 /* ProcLensApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		56BFA54DF2DFFFEE7451035D /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				2D43D575B3AC6CD4303D51A9 /* HistoryTracker.swift */,
+				E15B4BBA0F05903063D2D4E7 /* IconProvider.swift */,
+				90C6C33EB5DA59408970E7AD /* ProcessDetails.swift */,
+				3BF8967AA8A5778B2FEA7B0B /* ProcessManager.swift */,
+				5B717BC16D0A195174D7FFF6 /* SystemMonitor.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		66BA7D791471E0AA51595698 = {
+			isa = PBXGroup;
+			children = (
+				B17E11D94FB375003C04AC88 /* ProcLens */,
+				2713B72298D0500BD6BBB7F1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7C5062B2A123CACFC27D18CF /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C473C7A6C2CD4A5E1EE87722 /* DetailModels.swift */,
+				4897626BE83B2D76DBDFBCDC /* ProcessItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		8307B4A69C8B2FCB393650D6 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				72F76DEF0CEBB5E07A5DDCDC /* ContentView.swift */,
+				7209C9F12066022F5D5C236E /* DetailTabsView.swift */,
+				DFDF8DF3DFC68F989D8858F4 /* ProcessDetailView.swift */,
+				E4689B9F2A4BAD14AECAD2F5 /* ProcessListView.swift */,
+				20DC445E436C0C277560C276 /* ProcessTreeView.swift */,
+				130A95731DB2D73425CAE9AB /* SparklineView.swift */,
+				B7CA3167667B86E32E81AC78 /* SystemStatsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B17E11D94FB375003C04AC88 /* ProcLens */ = {
+			isa = PBXGroup;
+			children = (
+				C6A8AC69681C5DA42AAE808A /* Assets.xcassets */,
+				05A79902048DCC074459D53B /* Info.plist */,
+				C1CBA61AC547C368D18A1E57 /* ProcLens.entitlements */,
+				2FF3043058DB1E867B189E1C /* App */,
+				D602411C56CC1E6AD0CCBC5F /* Bridge */,
+				7C5062B2A123CACFC27D18CF /* Models */,
+				56BFA54DF2DFFFEE7451035D /* Services */,
+				8307B4A69C8B2FCB393650D6 /* Views */,
+			);
+			path = ProcLens;
+			sourceTree = "<group>";
+		};
+		D602411C56CC1E6AD0CCBC5F /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				46D0574C0F46A02864309BA6 /* DiskIO.c */,
+				424F4B2C0DFDDF9CE6C4A0DB /* DiskIO.h */,
+				08AD9EC105911CA720EFFF41 /* ProcLens-Bridging-Header.h */,
+			);
+			path = Bridge;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4BCDC1A5A56EFF9A4530A775 /* ProcLens */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 02A3D61E46E74DB9CC7AE7C2 /* Build configuration list for PBXNativeTarget "ProcLens" */;
+			buildPhases = (
+				CB552D75AF63DA27B7270CC1 /* Sources */,
+				82290FD5C00450DF21BB181A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ProcLens;
+			packageProductDependencies = (
+			);
+			productName = ProcLens;
+			productReference = 39B518333E6C68E988E3AC7D /* ProcLens.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D9709A04BC288E57D434118C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					4BCDC1A5A56EFF9A4530A775 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = E968344DE1D5B73A18F6B6F7 /* Build configuration list for PBXProject "ProcLens" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 66BA7D791471E0AA51595698;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 2713B72298D0500BD6BBB7F1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4BCDC1A5A56EFF9A4530A775 /* ProcLens */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		82290FD5C00450DF21BB181A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3F2EC9BED0EB2DCA7A357D1 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CB552D75AF63DA27B7270CC1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A2502AFE605F7E4FC80496F8 /* ContentView.swift in Sources */,
+				F5F2A00142FBA67E6FFADBEA /* DetailModels.swift in Sources */,
+				625039BD8C467799C2602446 /* DetailTabsView.swift in Sources */,
+				2D9851105A85E0BFC2C76D68 /* DiskIO.c in Sources */,
+				1BF6629862ECA8375E061AB0 /* HistoryTracker.swift in Sources */,
+				7E896C4F2672DF9772620460 /* IconProvider.swift in Sources */,
+				B01D224F035A7BA4686B713C /* ProcLensApp.swift in Sources */,
+				E738BF2F4C2F7DCCB4C161C2 /* ProcessDetailView.swift in Sources */,
+				B0F262FAA61F861616E76BDF /* ProcessDetails.swift in Sources */,
+				3B273F081F021056DC4F5CB6 /* ProcessItem.swift in Sources */,
+				2EC940CD0949F5A455D481B4 /* ProcessListView.swift in Sources */,
+				50EDCE8D181F5B507E00AA81 /* ProcessManager.swift in Sources */,
+				07A009E8C1E9E35422FD325A /* ProcessTreeView.swift in Sources */,
+				E8753EEED314424E8394F761 /* SparklineView.swift in Sources */,
+				63AC803399AE298FDC9AD51E /* SystemMonitor.swift in Sources */,
+				1529F84B0C4B378CEBA1BF92 /* SystemStatsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		155EC73179FF3976F198F523 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ProcLens/ProcLens.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = ProcLens/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nonbytes.ProcLens;
+				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "ProcLens/Bridge/ProcLens-Bridging-Header.h";
+			};
+			name = Debug;
+		};
+		51565801A34F48B09ECBAEB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5;
+			};
+			name = Debug;
+		};
+		963D22E70746089313395B63 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ProcLens/ProcLens.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = ProcLens/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nonbytes.ProcLens;
+				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "ProcLens/Bridge/ProcLens-Bridging-Header.h";
+			};
+			name = Release;
+		};
+		DEE46731EAF12FE7596594FC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		02A3D61E46E74DB9CC7AE7C2 /* Build configuration list for PBXNativeTarget "ProcLens" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				155EC73179FF3976F198F523 /* Debug */,
+				963D22E70746089313395B63 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E968344DE1D5B73A18F6B6F7 /* Build configuration list for PBXProject "ProcLens" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				51565801A34F48B09ECBAEB9 /* Debug */,
+				DEE46731EAF12FE7596594FC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D9709A04BC288E57D434118C /* Project object */;
+}

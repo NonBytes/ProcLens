@@ -1,4 +1,4 @@
-name: MacPH
+name: ProcLens
 options:
   bundleIdPrefix: com.nonbytes
   deploymentTarget:
@@ -11,23 +11,23 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
 
 targets:
-  MacPH:
+  ProcLens:
     type: application
     platform: macOS
     sources:
-      - MacPH
+      - ProcLens
     info:
-      path: MacPH/Info.plist
+      path: ProcLens/Info.plist
       properties:
         CFBundleDisplayName: "ProcLens"
         CFBundleName: "ProcLens"
         LSMinimumSystemVersion: "14.0"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.nonbytes.MacPH
+        PRODUCT_BUNDLE_IDENTIFIER: com.nonbytes.ProcLens
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         CODE_SIGN_STYLE: Automatic
-        CODE_SIGN_ENTITLEMENTS: MacPH/MacPH.entitlements
-        SWIFT_OBJC_BRIDGING_HEADER: MacPH/Bridge/MacPH-Bridging-Header.h
+        CODE_SIGN_ENTITLEMENTS: ProcLens/ProcLens.entitlements
+        SWIFT_OBJC_BRIDGING_HEADER: ProcLens/Bridge/ProcLens-Bridging-Header.h
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
