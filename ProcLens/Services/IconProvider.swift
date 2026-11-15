@@ -10,14 +10,19 @@ final class IconProvider {
         genericIcon = NSWorkspace.shared.icon(forFile: "/usr/bin/env")
     }
 
-    func icon(for path: String) -> NSImage {
-        guard !path.isEmpty else { return genericIcon }
+    private func icon(for path: String) -> NSImage {
         if let cached = cache[path] {
             return cached
         }
-        let img = NSWorkspace.shared.icon(forFile: path)
-        cache[path] = img
-        return img
+
+        let components = (path as NSString).pathComponents
+        let bundlePath = components.lastIndex { ($0 as NSString).pathExtension.lowercased() == "app" }
+            .map { NSString.path(withComponents: Array(components[...$0])) }
+        let iconPath = bundlePath ?? path
+        let image = cache[iconPath] ?? NSWorkspace.shared.icon(forFile: iconPath)
+        cache[iconPath] = image
+        cache[path] = image
+        return image
     }
 
     func appIcon(for process: ProcessItem) -> NSImage {

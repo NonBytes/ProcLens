@@ -35,7 +35,7 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 | **Priority Control** | Adjust nice value with a slider |
 | **Export CSV** | Export full process list to CSV |
 | **Dark / Light Theme** | System, Light, or Dark — switchable from menu bar |
-| **Real App Icons** | Displays actual application icons from the system |
+| **Real App Icons** | Displays the app bundle icon for apps and their bundled executables |
 | **Search** | Filter processes by name, PID, user, or path |
 
 ## Install
