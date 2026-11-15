@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to build
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -11,15 +17,19 @@ permissions:
 jobs:
   release:
     runs-on: macos-15
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
       - name: Build and package universal app
         shell: bash
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          version="${RELEASE_TAG#v}"
           build_dir="$RUNNER_TEMP/ProcLens-build"
           xcodebuild -project ProcLens.xcodeproj -scheme ProcLens -configuration Release \
             -destination 'generic/platform=macOS' -derivedDataPath "$build_dir" \
@@ -42,6 +52,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" "ProcLens-${version}.dmg" \
+          version="${RELEASE_TAG#v}"
+          gh release create "$RELEASE_TAG" "ProcLens-${version}.dmg" \
             --verify-tag --title "ProcLens ${version}" --notes-from-tag
