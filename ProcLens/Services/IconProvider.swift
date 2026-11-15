@@ -8,7 +8,6 @@ final class IconProvider {
 
     private init() {
         genericIcon = NSWorkspace.shared.icon(forFile: "/usr/bin/env")
-        genericIcon.size = NSSize(width: 16, height: 16)
     }
 
     func icon(for path: String) -> NSImage {
@@ -17,7 +16,6 @@ final class IconProvider {
             return cached
         }
         let img = NSWorkspace.shared.icon(forFile: path)
-        img.size = NSSize(width: 16, height: 16)
         cache[path] = img
         return img
     }
@@ -27,7 +25,6 @@ final class IconProvider {
             return icon(for: process.path)
         }
         if let app = NSRunningApplication(processIdentifier: process.pid), let img = app.icon {
-            img.size = NSSize(width: 16, height: 16)
             return img
         }
         return genericIcon

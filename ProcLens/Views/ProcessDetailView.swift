@@ -9,7 +9,7 @@ enum DetailTab: String, CaseIterable {
 
 struct ProcessDetailView: View {
     let process: ProcessItem
-    let details: ProcessDetails
+    @State private var details = ProcessDetails()
     @Environment(ProcessManager.self) private var processManager
     private var historyTracker: HistoryTracker { processManager.historyTracker }
     @State private var selectedTab: DetailTab = .info
@@ -36,19 +36,21 @@ struct ProcessDetailView: View {
             }
         }
         .background(.background)
-        .onAppear { newNice = Double(process.niceValue) }
+        .onChange(of: process.pid, initial: true) {
+            newNice = Double(process.niceValue)
+            details.loadAll(for: process.pid)
+        }
     }
 
     // MARK: - Header
 
     private var header: some View {
         HStack(spacing: 12) {
-            Image(nsImage: {
-                let img = IconProvider.shared.appIcon(for: process)
-                img.size = NSSize(width: 36, height: 36)
-                return img
-            }())
-            .shadow(radius: 2)
+            Image(nsImage: IconProvider.shared.appIcon(for: process))
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 36, height: 36)
+                .shadow(radius: 2)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(process.name).font(.title3).fontWeight(.bold).lineLimit(1)

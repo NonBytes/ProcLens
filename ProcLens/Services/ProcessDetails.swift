@@ -8,11 +8,11 @@ final class ProcessDetails {
     var openFiles: [OpenFile] = []
     var environmentVars: [(key: String, value: String)] = []
     var isLoading = false
-    private var loadedPID: Int32 = -1
+    @ObservationIgnored private var loadID: UUID?
 
     func loadAll(for pid: Int32) {
-        guard pid != loadedPID else { return }
-        loadedPID = pid
+        let requestID = UUID()
+        loadID = requestID
         isLoading = true
         networkConnections = []
         openFiles = []
@@ -23,19 +23,13 @@ final class ProcessDetails {
             let files = ProcessDetails.fetchFiles(pid: pid)
             let env = ProcessDetails.fetchEnvironment(pid: pid)
             DispatchQueue.main.async {
-                self?.networkConnections = net
-                self?.openFiles = files
-                self?.environmentVars = env
-                self?.isLoading = false
+                guard let self, self.loadID == requestID else { return }
+                self.networkConnections = net
+                self.openFiles = files
+                self.environmentVars = env
+                self.isLoading = false
             }
         }
-    }
-
-    func reset() {
-        loadedPID = -1
-        networkConnections = []
-        openFiles = []
-        environmentVars = []
     }
 
     // MARK: - Network
@@ -91,9 +85,11 @@ final class ProcessDetails {
         var size: size_t = 0
         guard sysctl(&mib, 3, nil, &size, nil, 0) == 0, size > 0 else { return [] }
         var buffer = [UInt8](repeating: 0, count: size)
-        guard sysctl(&mib, 3, &buffer, &size, nil, 0) == 0 else { return [] }
+        guard sysctl(&mib, 3, &buffer, &size, nil, 0) == 0,
+              size >= MemoryLayout<Int32>.size else { return [] }
 
-        let argc = buffer.withUnsafeBytes { $0.load(as: Int32.self) }
+        let argc = buffer.withUnsafeBytes { $0.loadUnaligned(as: Int32.self) }
+        guard argc >= 0 else { return [] }
         var offset = MemoryLayout<Int32>.size
 
         while offset < size && buffer[offset] != 0 { offset += 1 }
@@ -132,8 +128,15 @@ final class ProcessDetails {
         task.arguments = args
         let pipe = Pipe()
         task.standardOutput = pipe
-        task.standardError = Pipe()
-        do { try task.run(); task.waitUntilExit() } catch { return nil }
-        return String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)
+        task.standardError = FileHandle.nullDevice
+        do {
+            try task.run()
+        } catch {
+            return nil
+        }
+        // Drain stdout before waiting so large file lists cannot fill the pipe.
+        let output = pipe.fileHandleForReading.readDataToEndOfFile()
+        task.waitUntilExit()
+        return String(data: output, encoding: .utf8)
     }
 }

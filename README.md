@@ -26,7 +26,7 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 | **Process List** | Sortable table — PID, Name, CPU%, Memory, User, Threads, Status |
 | **Sparkline Graphs** | Real-time CPU history per process, inline in the table |
 | **Process Tree** | Toggle between flat list and parent-child hierarchy |
-| **Inspector Panel** | Tabbed detail view: Info, Network, Files, Environment |
+| **Inspector Panel** | Info, Network, Files, and Env tabs load for the selected process |
 | **Network Connections** | Per-process TCP/UDP connections and listening ports |
 | **Open Files** | All file descriptors with search filter |
 | **Environment Variables** | Full env dump per process with search |
@@ -44,18 +44,19 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 
 Grab the latest DMG from [Releases](https://github.com/NonBytes/ProcLens/releases/latest), open it, and drag **ProcLens** to **Applications**.
 
+The release is a Universal Binary for Apple Silicon and Intel Macs. The DMG contains an ad hoc signed app without Apple notarization.
+
 ### Build from source
 
-Requires Xcode 16+ and [xcodegen](https://github.com/yonaskolb/XcodeGen).
+Requires Xcode 16 or later. Open the checked-in Xcode project and build and run with `⌘R`.
 
 ```bash
 git clone https://github.com/NonBytes/ProcLens.git
 cd ProcLens
-xcodegen generate
 open ProcLens.xcodeproj
 ```
 
-Build and run with `⌘R`.
+Use [XcodeGen](https://github.com/yonaskolb/XcodeGen) to regenerate the project when editing `project.yml`. Pushing a version tag such as `v1.0.1` triggers the GitHub Actions workflow that builds and publishes the universal DMG.
 
 ## Keyboard Shortcuts
 
@@ -63,7 +64,6 @@ Build and run with `⌘R`.
 |----------|--------|
 | `⌘R` | Refresh process list |
 | `⌘E` | Export to CSV |
-| `⌫` | Terminate selected process |
 
 ## Requirements
 

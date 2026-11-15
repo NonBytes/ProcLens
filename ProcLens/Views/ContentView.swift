@@ -16,7 +16,6 @@ struct ContentView: View {
     @State private var showKillAlert = false
     @State private var forceKill = false
     @State private var viewMode: ViewMode = .list
-    @State private var processDetails = ProcessDetails()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,14 +28,8 @@ struct ContentView: View {
 
                 if showInspector, let process = selectedProcess {
                     Divider()
-                    ProcessDetailView(process: process, details: processDetails)
+                    ProcessDetailView(process: process)
                         .frame(width: 320)
-                        .onChange(of: selectedPID) { _, newPID in
-                            if let pid = newPID {
-                                processDetails.reset()
-                                processDetails.loadAll(for: pid)
-                            }
-                        }
                 }
             }
 
