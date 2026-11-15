@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1E4F639F1FDA41BE9A55029A /* NetworkActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457BF03911354468AB13ED59 /* NetworkActivityView.swift */; };
 		07A009E8C1E9E35422FD325A /* ProcessTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DC445E436C0C277560C276 /* ProcessTreeView.swift */; };
 		1529F84B0C4B378CEBA1BF92 /* SystemStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7CA3167667B86E32E81AC78 /* SystemStatsView.swift */; };
 		1BF6629862ECA8375E061AB0 /* HistoryTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D43D575B3AC6CD4303D51A9 /* HistoryTracker.swift */; };
@@ -20,6 +21,7 @@
 		A2502AFE605F7E4FC80496F8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F76DEF0CEBB5E07A5DDCDC /* ContentView.swift */; };
 		A3F2EC9BED0EB2DCA7A357D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C6A8AC69681C5DA42AAE808A /* Assets.xcassets */; };
 		B01D224F035A7BA4686B713C /* ProcLensApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170BF9C5C746A34D4BFA0938 /* ProcLensApp.swift */; };
+		36D780A706A34B87ABC72180 /* NetworkSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ECD264726C44640B882F43E /* NetworkSampler.swift */; };
 		B0F262FAA61F861616E76BDF /* ProcessDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90C6C33EB5DA59408970E7AD /* ProcessDetails.swift */; };
 		E738BF2F4C2F7DCCB4C161C2 /* ProcessDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDF8DF3DFC68F989D8858F4 /* ProcessDetailView.swift */; };
 		E8753EEED314424E8394F761 /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130A95731DB2D73425CAE9AB /* SparklineView.swift */; };
@@ -31,6 +33,7 @@
 		08AD9EC105911CA720EFFF41 /* ProcLens-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ProcLens-Bridging-Header.h"; sourceTree = "<group>"; };
 		130A95731DB2D73425CAE9AB /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
 		170BF9C5C746A34D4BFA0938 /* ProcLensApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcLensApp.swift; sourceTree = "<group>"; };
+		457BF03911354468AB13ED59 /* NetworkActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkActivityView.swift; sourceTree = "<group>"; };
 		20DC445E436C0C277560C276 /* ProcessTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessTreeView.swift; sourceTree = "<group>"; };
 		2D43D575B3AC6CD4303D51A9 /* HistoryTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTracker.swift; sourceTree = "<group>"; };
 		39B518333E6C68E988E3AC7D /* ProcLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProcLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -41,6 +44,7 @@
 		5B717BC16D0A195174D7FFF6 /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
 		7209C9F12066022F5D5C236E /* DetailTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailTabsView.swift; sourceTree = "<group>"; };
 		72F76DEF0CEBB5E07A5DDCDC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		1ECD264726C44640B882F43E /* NetworkSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSampler.swift; sourceTree = "<group>"; };
 		90C6C33EB5DA59408970E7AD /* ProcessDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessDetails.swift; sourceTree = "<group>"; };
 		B7CA3167667B86E32E81AC78 /* SystemStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsView.swift; sourceTree = "<group>"; };
 		C1CBA61AC547C368D18A1E57 /* ProcLens.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ProcLens.entitlements; sourceTree = "<group>"; };
@@ -73,6 +77,7 @@
 			children = (
 				2D43D575B3AC6CD4303D51A9 /* HistoryTracker.swift */,
 				E15B4BBA0F05903063D2D4E7 /* IconProvider.swift */,
+				1ECD264726C44640B882F43E /* NetworkSampler.swift */,
 				90C6C33EB5DA59408970E7AD /* ProcessDetails.swift */,
 				3BF8967AA8A5778B2FEA7B0B /* ProcessManager.swift */,
 				5B717BC16D0A195174D7FFF6 /* SystemMonitor.swift */,
@@ -104,6 +109,7 @@
 				7209C9F12066022F5D5C236E /* DetailTabsView.swift */,
 				DFDF8DF3DFC68F989D8858F4 /* ProcessDetailView.swift */,
 				E4689B9F2A4BAD14AECAD2F5 /* ProcessListView.swift */,
+				457BF03911354468AB13ED59 /* NetworkActivityView.swift */,
 				20DC445E436C0C277560C276 /* ProcessTreeView.swift */,
 				130A95731DB2D73425CAE9AB /* SparklineView.swift */,
 				B7CA3167667B86E32E81AC78 /* SystemStatsView.swift */,
@@ -214,10 +220,12 @@
 				7E896C4F2672DF9772620460 /* IconProvider.swift in Sources */,
 				B01D224F035A7BA4686B713C /* ProcLensApp.swift in Sources */,
 				E738BF2F4C2F7DCCB4C161C2 /* ProcessDetailView.swift in Sources */,
+				36D780A706A34B87ABC72180 /* NetworkSampler.swift in Sources */,
 				B0F262FAA61F861616E76BDF /* ProcessDetails.swift in Sources */,
 				3B273F081F021056DC4F5CB6 /* ProcessItem.swift in Sources */,
 				2EC940CD0949F5A455D481B4 /* ProcessListView.swift in Sources */,
 				50EDCE8D181F5B507E00AA81 /* ProcessManager.swift in Sources */,
+				1E4F639F1FDA41BE9A55029A /* NetworkActivityView.swift in Sources */,
 				07A009E8C1E9E35422FD325A /* ProcessTreeView.swift in Sources */,
 				E8753EEED314424E8394F761 /* SparklineView.swift in Sources */,
 				63AC803399AE298FDC9AD51E /* SystemMonitor.swift in Sources */,
@@ -235,13 +243,13 @@
 				CODE_SIGN_ENTITLEMENTS = ProcLens/ProcLens.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				INFOPLIST_FILE = ProcLens/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.nonbytes.ProcLens;
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = "ProcLens/Bridge/ProcLens-Bridging-Header.h";
@@ -252,6 +260,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -318,13 +327,13 @@
 				CODE_SIGN_ENTITLEMENTS = ProcLens/ProcLens.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				INFOPLIST_FILE = ProcLens/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.nonbytes.ProcLens;
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = "ProcLens/Bridge/ProcLens-Bridging-Header.h";
@@ -335,6 +344,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";

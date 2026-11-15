@@ -122,7 +122,7 @@ final class ProcessDetails {
         return (String(s[..<i]), String(s[s.index(after: i)...]))
     }
 
-    private static func run(_ path: String, _ args: [String]) -> String? {
+    static func run(_ path: String, _ args: [String], requireSuccess: Bool = false) -> String? {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: path)
         task.arguments = args
@@ -137,6 +137,7 @@ final class ProcessDetails {
         // Drain stdout before waiting so large file lists cannot fill the pipe.
         let output = pipe.fileHandleForReading.readDataToEndOfFile()
         task.waitUntilExit()
+        if requireSuccess && task.terminationStatus != 0 { return nil }
         return String(data: output, encoding: .utf8)
     }
 }

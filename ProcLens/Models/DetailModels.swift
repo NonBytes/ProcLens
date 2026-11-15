@@ -33,22 +33,37 @@ struct ProcessTreeNode: Identifiable {
     let process: ProcessItem
     var children: [ProcessTreeNode]?
 
-    static func buildForest(from processes: [ProcessItem]) -> [ProcessTreeNode] {
+    static func buildForest(
+        from processes: [ProcessItem], under parentPID: Int32?,
+        sortedBy comparator: KeyPathComparator<ProcessItem>
+    ) -> [ProcessTreeNode] {
         var childrenMap: [Int32: [ProcessItem]] = [:]
         var pidSet = Set<Int32>()
         for p in processes {
             pidSet.insert(p.pid)
             childrenMap[p.parentPid, default: []].append(p)
         }
-        func makeNode(_ p: ProcessItem) -> ProcessTreeNode {
+        let sortOrder = [comparator, KeyPathComparator(\ProcessItem.pid)]
+        var visited: Set<Int32> = parentPID.map { [$0] } ?? []
+        func makeNode(_ p: ProcessItem) -> ProcessTreeNode? {
+            guard visited.insert(p.pid).inserted else { return nil }
             let kids = childrenMap[p.pid]?
-                .sorted { $0.cpuUsage > $1.cpuUsage }
-                .map { makeNode($0) }
+                .sorted(using: sortOrder)
+                .compactMap(makeNode)
             return ProcessTreeNode(process: p, children: kids?.isEmpty == true ? nil : kids)
         }
-        return processes
-            .filter { $0.parentPid <= 0 || !pidSet.contains($0.parentPid) }
-            .sorted { $0.cpuUsage > $1.cpuUsage }
-            .map { makeNode($0) }
+        let roots = if let parentPID {
+            childrenMap[parentPID] ?? []
+        } else {
+            processes.filter { $0.parentPid <= 0 || !pidSet.contains($0.parentPid) }
+        }
+        var sortedRoots = roots.sorted(using: sortOrder)
+        if parentPID == nil,
+           let launchdIndex = sortedRoots.firstIndex(where: { $0.pid == 1 && $0.name == "launchd" }),
+           launchdIndex > 0 {
+            let launchd = sortedRoots.remove(at: launchdIndex)
+            sortedRoots.insert(launchd, at: 0)
+        }
+        return sortedRoots.compactMap(makeNode)
     }
 }

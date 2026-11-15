@@ -5,6 +5,8 @@ struct ProcessListView: View {
     @Binding var selectedPID: Int32?
     @Binding var searchText: String
     @Binding var sortOrder: [KeyPathComparator<ProcessItem>]
+    let networkActivity: NetworkActivity
+    let showSubprocesses: (ProcessItem) -> Void
 
     private var displayProcesses: [ProcessItem] {
         let base = searchText.isEmpty
@@ -15,7 +17,13 @@ struct ProcessListView: View {
                     || p.user.localizedCaseInsensitiveContains(searchText)
                     || p.path.localizedCaseInsensitiveContains(searchText)
             }
-        return base.sorted(using: sortOrder)
+        let networkRows = networkActivity.rows
+        return base.map { process in
+            var row = process
+            row.networkCounters = networkRows[process.pid]?.totals
+            return row
+        }
+        .sorted(using: sortOrder)
     }
 
     var body: some View {
@@ -58,6 +66,18 @@ struct ProcessListView: View {
             }
             .width(min: 70, ideal: 90, max: 110)
 
+            TableColumn("Received", value: \.networkBytesReceived) { process in
+                Text(process.networkCounters.map { NetworkCounters.formatBytes($0.received) } ?? "—")
+                    .monospacedDigit()
+            }
+            .width(min: 75, ideal: 90)
+
+            TableColumn("Sent", value: \.networkBytesSent) { process in
+                Text(process.networkCounters.map { NetworkCounters.formatBytes($0.sent) } ?? "—")
+                    .monospacedDigit()
+            }
+            .width(min: 65, ideal: 80)
+
             TableColumn("User", value: \.user)
                 .width(min: 60, ideal: 80, max: 120)
 
@@ -77,6 +97,8 @@ struct ProcessListView: View {
         .contextMenu(forSelectionType: Int32.self) { pids in
             if let pid = pids.first,
                let process = processManager.processes.first(where: { $0.pid == pid }) {
+                Button("Show Subprocesses") { showSubprocesses(process) }
+                Divider()
                 Button("Copy PID") { copyText("\(process.pid)") }
                 Button("Copy Name") { copyText(process.name) }
                 if !process.path.isEmpty {

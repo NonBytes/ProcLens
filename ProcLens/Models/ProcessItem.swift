@@ -50,6 +50,9 @@ struct ProcessItem: Identifiable, Hashable {
     var niceValue: Int32
     var diskReadBytes: UInt64
     var diskWriteBytes: UInt64
+    var networkCounters: NetworkCounters? = nil
+    var networkBytesReceived: UInt64 { networkCounters?.received ?? 0 }
+    var networkBytesSent: UInt64 { networkCounters?.sent ?? 0 }
 
     var memoryMB: Double {
         Double(memoryUsage) / 1_048_576.0

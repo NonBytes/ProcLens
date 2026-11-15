@@ -10,7 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/platform-macOS%2014%2B-blue" alt="macOS 14+">
-  <img src="https://img.shields.io/badge/arch-Universal%20(ARM%20%2B%20Intel)-green" alt="Universal Binary">
+  <img src="https://img.shields.io/badge/arch-Apple%20Silicon-green" alt="Apple Silicon">
   <img src="https://img.shields.io/badge/swift-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/github/v/release/NonBytes/ProcLens" alt="Release">
 </p>
@@ -23,11 +23,13 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 
 | Feature | Description |
 |---------|-------------|
-| **Process List** | Sortable table — PID, Name, CPU%, Memory, User, Threads, Status |
+| **Process List** | Sortable table — PID, Name, CPU%, Memory, network bytes received and sent, User, Threads, Status |
 | **Sparkline Graphs** | Real-time CPU history per process, inline in the table |
-| **Process Tree** | Toggle between flat list and parent-child hierarchy |
+| **Process Tree** | Sort siblings by name or CPU usage. The root `launchd` stays first and starts expanded |
+| **Subprocesses** | Right-click a process in List or Tree and choose **Show Subprocesses** |
 | **Inspector Panel** | Info, Network, Files, and Env tabs load for the selected process |
 | **Network Connections** | Per-process TCP/UDP connections and listening ports |
+| **Network Activity** | Sort processes by bytes received or sent and view live transfer rates for processes reported by macOS |
 | **Open Files** | All file descriptors with search filter |
 | **Environment Variables** | Full env dump per process with search |
 | **Suspend / Resume** | SIGSTOP / SIGCONT from toolbar or right-click menu |
@@ -38,13 +40,20 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 | **Real App Icons** | Displays the app bundle icon for apps and their bundled executables |
 | **Search** | Filter processes by name, PID, user, or path |
 
+## Network usage
+
+- In **List**, **Received** and **Sent** show cumulative bytes per process. Click a column header to sort.
+- Open **Network** and look at **Received/s** and **Sent/s** for transfer speeds. The graphs below show combined rates for the processes that macOS reports through `nettop`.
+- A dash indicates missing data. Rates appear after two samples. A zero rate means the counter did not increase during the measured interval.
+- Select a process and open **Network** in the Inspector to see its TCP and UDP connections.
+
 ## Install
 
 ### Download
 
 Grab the latest DMG from [Releases](https://github.com/NonBytes/ProcLens/releases/latest), open it, and drag **ProcLens** to **Applications**.
 
-The release is a Universal Binary for Apple Silicon and Intel Macs. The DMG contains an ad hoc signed app without Apple notarization.
+New builds target Apple Silicon. [ProcLens v1.0.2](https://github.com/NonBytes/ProcLens/releases/tag/v1.0.2) is the last release for Intel Macs and includes both Intel and Apple Silicon binaries. The DMG contains an ad hoc signed app without Apple notarization.
 
 ### Build from source
 
@@ -56,7 +65,7 @@ cd ProcLens
 open ProcLens.xcodeproj
 ```
 
-Use [XcodeGen](https://github.com/yonaskolb/XcodeGen) to regenerate the project when editing `project.yml`. Pushing a version tag such as `v1.0.1` triggers the GitHub Actions workflow that builds and publishes the universal DMG.
+Use [XcodeGen](https://github.com/yonaskolb/XcodeGen) to regenerate the project when editing `project.yml`. Pushing a new version tag triggers the GitHub Actions workflow that builds and publishes the Apple Silicon DMG.
 
 ## Keyboard Shortcuts
 
@@ -68,7 +77,7 @@ Use [XcodeGen](https://github.com/yonaskolb/XcodeGen) to regenerate the project 
 ## Requirements
 
 - macOS 14.0 (Sonoma) or later
-- Apple Silicon or Intel Mac (Universal Binary)
+- Apple Silicon Mac. Intel Macs can use v1.0.2.
 
 ## Architecture
 
@@ -77,10 +86,10 @@ ProcLens/
 ├── App/              # App entry point, settings, theme
 ├── Models/           # ProcessItem, DetailModels (network, files, tree)
 ├── Services/         # ProcessManager, SystemMonitor, HistoryTracker,
-│                     # ProcessDetails, IconProvider
+│                     # NetworkSampler, ProcessDetails, IconProvider
 ├── Views/            # ContentView, ProcessListView, ProcessTreeView,
 │                     # ProcessDetailView, SystemStatsView, SparklineView,
-│                     # DetailTabsView (Network/Files/Env tabs)
+│                     # NetworkActivityView, DetailTabsView
 ├── Bridge/           # C bridging for disk I/O
 └── Assets.xcassets/  # App icon
 ```
@@ -90,6 +99,7 @@ ProcLens/
 - **SwiftUI** + **@Observable** (macOS 14 Observation framework)
 - **Darwin APIs** — `sysctl`, `proc_pidinfo`, `proc_listallpids`, `host_processor_info`
 - **lsof** — network connections and open files (on-demand)
+- **nettop** — per-process network byte counters
 - **KERN_PROCARGS2** — environment variable extraction
 
 ## License

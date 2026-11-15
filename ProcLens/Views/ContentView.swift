@@ -4,18 +4,23 @@ import AppKit
 enum ViewMode: String, CaseIterable {
     case list = "List"
     case tree = "Tree"
+    case network = "Network"
 }
 
 struct ContentView: View {
     @Environment(ProcessManager.self) private var processManager
     @Environment(SystemMonitor.self) private var systemMonitor
     @State private var selectedPID: Int32?
+    @State private var subprocessParent: ProcessItem?
     @State private var searchText = ""
     @State private var sortOrder = [KeyPathComparator(\ProcessItem.cpuUsage, order: .reverse)]
     @State private var showInspector = true
     @State private var showKillAlert = false
     @State private var forceKill = false
     @State private var viewMode: ViewMode = .list
+    @State private var networkActivity = NetworkActivity()
+
+    private var needsNetworkCounters: Bool { viewMode != .tree }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -38,6 +43,14 @@ struct ContentView: View {
         }
         .searchable(text: $searchText, prompt: "Search processes...")
         .toolbar { toolbarContent }
+        .task(id: needsNetworkCounters) {
+            if needsNetworkCounters {
+                await networkActivity.monitor(processManager: processManager)
+            }
+        }
+        .sheet(item: $subprocessParent) { parent in
+            SubprocessSheet(parent: parent)
+        }
         .onAppear {
             processManager.startMonitoring()
             systemMonitor.startMonitoring()
@@ -65,22 +78,35 @@ struct ContentView: View {
     private var mainContent: some View {
         switch viewMode {
         case .list:
-            ProcessListView(selectedPID: $selectedPID, searchText: $searchText, sortOrder: $sortOrder)
+            ProcessListView(
+                selectedPID: $selectedPID, searchText: $searchText, sortOrder: $sortOrder,
+                networkActivity: networkActivity,
+                showSubprocesses: { subprocessParent = $0 }
+            )
         case .tree:
             ProcessTreeView(
-                rootNodes: ProcessTreeNode.buildForest(from: filteredProcesses),
-                selectedPID: $selectedPID
+                processes: filteredProcesses,
+                selectedPID: $selectedPID,
+                showSubprocesses: { subprocessParent = $0 }
             )
+        case .network:
+            NetworkActivityView(searchText: searchText, selectedPID: $selectedPID, activity: networkActivity)
         }
     }
 
     private var statusBar: some View {
         HStack {
-            Text("\(processManager.processes.count) processes")
-            if !searchText.isEmpty { Text("(\(filteredProcesses.count) shown)") }
-            Spacer()
-            if processManager.isRefreshing { ProgressView().controlSize(.mini) }
-            Text("Refresh: \(Int(processManager.refreshInterval))s")
+            if viewMode == .network {
+                Text("Network counters reported by macOS")
+                Spacer()
+                Text("Samples: ~\(Int(max(5, processManager.refreshInterval)))s")
+            } else {
+                Text("\(processManager.processes.count) processes")
+                if !searchText.isEmpty { Text("(\(filteredProcesses.count) shown)") }
+                Spacer()
+                if processManager.isRefreshing { ProgressView().controlSize(.mini) }
+                Text("Refresh: \(Int(processManager.refreshInterval))s")
+            }
         }
         .font(.caption).foregroundStyle(.secondary)
         .padding(.horizontal, 16).padding(.vertical, 4)
@@ -90,12 +116,19 @@ struct ContentView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .automatic) {
-            Picker("View", selection: $viewMode) {
-                Label("List", systemImage: "list.bullet").tag(ViewMode.list)
-                Label("Tree", systemImage: "list.triangle").tag(ViewMode.tree)
+            Picker("Process View", selection: $viewMode) {
+                Label("List", systemImage: "list.bullet")
+                    .accessibilityLabel("Process List")
+                    .tag(ViewMode.list)
+                Label("Tree", systemImage: "arrow.triangle.branch")
+                    .accessibilityLabel("Process Tree")
+                    .tag(ViewMode.tree)
+                Label("Network", systemImage: "network")
+                    .accessibilityLabel("Network Activity")
+                    .tag(ViewMode.network)
             }
             .pickerStyle(.segmented)
-            .help("Switch between List and Tree view")
+            .help("Switch between List, Tree, and Network views")
 
             Divider()
 
