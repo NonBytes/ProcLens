@@ -23,9 +23,9 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 
 | Feature | Description |
 |---------|-------------|
-| **Process List** | Sortable table — PID, Name, CPU%, Memory, network bytes received and sent, User, Threads, Status |
+| **Process List** | Nine sortable columns in this order · PID, Name, CPU %, Memory, Received, Sent, User, Threads, Status |
 | **Sparkline Graphs** | Real-time CPU history per process, inline in the table |
-| **Process Tree** | Sort siblings by name or CPU usage. The root `launchd` stays first and starts expanded |
+| **Process Tree** | Uses the same nine columns in the same order as List. Click a header to sort siblings and click again to reverse the order. The root `launchd` stays first and starts expanded |
 | **Subprocesses** | Right-click a process in List or Tree and choose **Show Subprocesses** |
 | **Inspector Panel** | Info, Network, Files, and Env tabs load for the selected process |
 | **Network Connections** | Per-process TCP/UDP connections and listening ports |
@@ -42,7 +42,7 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 
 ## Network usage
 
-- In **List**, **Received** and **Sent** show cumulative bytes per process. Click a column header to sort.
+- In **List** and **Tree**, **Received** and **Sent** show cumulative bytes per process. Click a column header to sort.
 - Open **Network** and look at **Received/s** and **Sent/s** for transfer speeds. The graphs below show combined rates for the processes that macOS reports through `nettop`.
 - A dash indicates missing data. Rates appear after two samples. A zero rate means the counter did not increase during the measured interval.
 - Select a process and open **Network** in the Inspector to see its TCP and UDP connections.

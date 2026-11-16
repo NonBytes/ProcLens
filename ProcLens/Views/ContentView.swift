@@ -20,7 +20,6 @@ struct ContentView: View {
     @State private var viewMode: ViewMode = .list
     @State private var networkActivity = NetworkActivity()
 
-    private var needsNetworkCounters: Bool { viewMode != .tree }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -43,13 +42,11 @@ struct ContentView: View {
         }
         .searchable(text: $searchText, prompt: "Search processes...")
         .toolbar { toolbarContent }
-        .task(id: needsNetworkCounters) {
-            if needsNetworkCounters {
-                await networkActivity.monitor(processManager: processManager)
-            }
+        .task {
+            await networkActivity.monitor(processManager: processManager)
         }
         .sheet(item: $subprocessParent) { parent in
-            SubprocessSheet(parent: parent)
+            SubprocessSheet(parent: parent, networkActivity: networkActivity)
         }
         .onAppear {
             processManager.startMonitoring()
@@ -69,7 +66,7 @@ struct ContentView: View {
                 Text("Are you sure you want to \(forceKill ? "force kill" : "terminate") \"\(p.name)\" (PID \(p.pid))?")
             }
         }
-        .frame(minWidth: 900, minHeight: 500)
+        .frame(minWidth: viewMode == .tree && showInspector && selectedProcess != nil ? 1040 : 900, minHeight: 500)
     }
 
     // MARK: - Main Content
@@ -85,7 +82,7 @@ struct ContentView: View {
             )
         case .tree:
             ProcessTreeView(
-                processes: filteredProcesses,
+                processes: networkActivity.addingCounters(to: filteredProcesses),
                 selectedPID: $selectedPID,
                 showSubprocesses: { subprocessParent = $0 }
             )

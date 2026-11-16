@@ -243,13 +243,13 @@
 				CODE_SIGN_ENTITLEMENTS = ProcLens/ProcLens.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				INFOPLIST_FILE = ProcLens/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.nonbytes.ProcLens;
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = "ProcLens/Bridge/ProcLens-Bridging-Header.h";
@@ -327,13 +327,13 @@
 				CODE_SIGN_ENTITLEMENTS = ProcLens/ProcLens.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				INFOPLIST_FILE = ProcLens/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.nonbytes.ProcLens;
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = "ProcLens/Bridge/ProcLens-Bridging-Header.h";

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SubprocessSheet: View {
     let parent: ProcessItem
+    let networkActivity: NetworkActivity
     @Environment(ProcessManager.self) private var processManager
     @Environment(\.dismiss) private var dismiss
 
@@ -27,10 +28,14 @@ struct SubprocessSheet: View {
                 )
                 .frame(maxHeight: .infinity)
             } else {
-                ProcessTreeView(processes: processes, parentPID: parent.pid, selectedPID: .constant(nil))
+                ProcessTreeView(
+                    processes: networkActivity.addingCounters(to: processes),
+                    parentPID: parent.pid,
+                    selectedPID: .constant(nil)
+                )
             }
         }
-        .frame(minWidth: 540, minHeight: 360)
+        .frame(minWidth: 720, minHeight: 360)
     }
 }
 
@@ -46,12 +51,24 @@ struct ProcessTreeView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 6) {
+                sortButton("PID", by: KeyPathComparator(\ProcessItem.pid))
+                    .frame(width: 55, alignment: .leading)
                 sortButton("Name", by: KeyPathComparator(\ProcessItem.name, comparator: .localizedStandard))
                 Spacer()
                 sortButton("CPU %", by: KeyPathComparator(\ProcessItem.cpuUsage, order: .reverse))
                     .frame(width: 55, alignment: .trailing)
-                Text("Memory").frame(width: 75, alignment: .trailing)
-                Text("PID").frame(width: 55, alignment: .trailing)
+                sortButton("Memory", by: KeyPathComparator(\ProcessItem.memoryUsage, order: .reverse))
+                    .frame(width: 75, alignment: .trailing)
+                sortButton("Received", by: KeyPathComparator(\ProcessItem.networkBytesReceived, order: .reverse))
+                    .frame(width: 85, alignment: .trailing)
+                sortButton("Sent", by: KeyPathComparator(\ProcessItem.networkBytesSent, order: .reverse))
+                    .frame(width: 75, alignment: .trailing)
+                sortButton("User", by: KeyPathComparator(\ProcessItem.user, comparator: .localizedStandard))
+                    .frame(width: 80, alignment: .trailing)
+                sortButton("Threads", by: KeyPathComparator(\ProcessItem.threadCount, order: .reverse))
+                    .frame(width: 65, alignment: .trailing)
+                sortButton("Status", by: KeyPathComparator(\ProcessItem.status))
+                    .frame(width: 65, alignment: .trailing)
             }
             .font(.caption)
             .padding(.horizontal, 16)
@@ -113,6 +130,11 @@ struct ProcessTreeView: View {
 
     private func processRow(_ node: ProcessTreeNode) -> some View {
         HStack(spacing: 6) {
+            Text("\(node.process.pid)")
+                .monospacedDigit()
+                .foregroundStyle(.tertiary)
+                .frame(width: 55, alignment: .leading)
+
             Image(nsImage: IconProvider.shared.appIcon(for: node.process))
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -140,10 +162,30 @@ struct ProcessTreeView: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 75, alignment: .trailing)
 
-            Text("\(node.process.pid)")
+            Text(node.process.networkCounters.map { NetworkCounters.formatBytes($0.received) } ?? "—")
                 .monospacedDigit()
-                .foregroundStyle(.tertiary)
-                .frame(width: 55, alignment: .trailing)
+                .foregroundStyle(.secondary)
+                .frame(width: 85, alignment: .trailing)
+
+            Text(node.process.networkCounters.map { NetworkCounters.formatBytes($0.sent) } ?? "—")
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 75, alignment: .trailing)
+
+            Text(node.process.user)
+                .lineLimit(1)
+                .help(node.process.user)
+                .frame(width: 80, alignment: .trailing)
+
+            Text("\(node.process.threadCount)")
+                .monospacedDigit()
+                .frame(width: 65, alignment: .trailing)
+
+            Text(node.process.status.displayName)
+                .font(.caption)
+                .foregroundStyle(node.process.status.color)
+                .lineLimit(1)
+                .frame(width: 65, alignment: .trailing)
         }
         .font(.callout)
     }

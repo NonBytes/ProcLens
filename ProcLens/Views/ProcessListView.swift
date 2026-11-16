@@ -17,13 +17,7 @@ struct ProcessListView: View {
                     || p.user.localizedCaseInsensitiveContains(searchText)
                     || p.path.localizedCaseInsensitiveContains(searchText)
             }
-        let networkRows = networkActivity.rows
-        return base.map { process in
-            var row = process
-            row.networkCounters = networkRows[process.pid]?.totals
-            return row
-        }
-        .sorted(using: sortOrder)
+        return networkActivity.addingCounters(to: base).sorted(using: sortOrder)
     }
 
     var body: some View {

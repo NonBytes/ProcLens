@@ -88,6 +88,16 @@ final class NetworkActivity {
     private(set) var isLoading = true
     private(set) var hasError = false
 
+    func addingCounters(to processes: [ProcessItem]) -> [ProcessItem] {
+        let sampledRows = rows
+        guard !sampledRows.isEmpty else { return processes }
+        return processes.map { process in
+            var process = process
+            process.networkCounters = sampledRows[process.pid]?.totals
+            return process
+        }
+    }
+
     struct Row: Identifiable {
         let id: Int32
         let name: String
