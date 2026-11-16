@@ -26,4 +26,8 @@ dist/
 # Claude
 .claude/
 *.dmg
-*.dmg
+
+# Local agent handoff
+HANDOFF.md
+handoff.md
+
