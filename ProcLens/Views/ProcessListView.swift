@@ -110,6 +110,11 @@ struct ProcessListView: View {
                 Button("Terminate (SIGTERM)") { _ = processManager.killProcess(pid) }
                 Button("Force Kill (SIGKILL)") { _ = processManager.killProcess(pid, force: true) }
             }
+        } primaryAction: { pids in
+            if let pid = pids.first,
+               let process = processManager.processes.first(where: { $0.pid == pid }) {
+                showSubprocesses(process)
+            }
         }
     }
 

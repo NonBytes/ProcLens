@@ -104,6 +104,11 @@ struct ProcessTreeView: View {
                let process = processManager.processes.first(where: { $0.pid == pid }) {
                 Button("Show Subprocesses") { showSubprocesses(process) }
             }
+        } primaryAction: { pids in
+            if let showSubprocesses, let pid = pids.first,
+               let process = processManager.processes.first(where: { $0.pid == pid }) {
+                showSubprocesses(process)
+            }
         }
     }
 
