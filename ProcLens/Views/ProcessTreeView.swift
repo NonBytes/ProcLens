@@ -1,8 +1,13 @@
 import SwiftUI
 
-struct SubprocessSheet: View {
-    let parent: ProcessItem
-    let networkActivity: NetworkActivity
+struct SubprocessTarget: Hashable, Codable {
+    let pid: Int32
+    let name: String
+}
+
+struct SubprocessWindow: View {
+    let parent: SubprocessTarget
+    @Environment(NetworkActivity.self) private var networkActivity
     @Environment(ProcessManager.self) private var processManager
     @Environment(\.dismiss) private var dismiss
 

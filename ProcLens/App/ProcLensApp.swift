@@ -19,6 +19,7 @@ enum AppTheme: String, CaseIterable {
 struct ProcLensApp: App {
     @State private var processManager = ProcessManager()
     @State private var systemMonitor = SystemMonitor()
+    @State private var networkActivity = NetworkActivity()
     @AppStorage("appTheme") private var theme: String = AppTheme.system.rawValue
 
     var body: some Scene {
@@ -26,6 +27,7 @@ struct ProcLensApp: App {
             ContentView()
                 .environment(processManager)
                 .environment(systemMonitor)
+                .environment(networkActivity)
                 .onAppear {
                     applyTheme()
                     UserDefaults.standard.set(5000, forKey: "NSInitialToolTipDelay")
@@ -40,6 +42,16 @@ struct ProcLensApp: App {
                 }
             }
         }
+
+        WindowGroup("Subprocesses", for: SubprocessTarget.self) { $target in
+            if let target {
+                SubprocessWindow(parent: target)
+                    .environment(processManager)
+                    .environment(networkActivity)
+            }
+        }
+        .defaultSize(width: 1000, height: 560)
+        .windowResizability(.contentMinSize)
 
         Settings {
             SettingsView(theme: $theme)

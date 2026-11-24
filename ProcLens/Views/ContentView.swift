@@ -11,14 +11,14 @@ struct ContentView: View {
     @Environment(ProcessManager.self) private var processManager
     @Environment(SystemMonitor.self) private var systemMonitor
     @State private var selectedPID: Int32?
-    @State private var subprocessParent: ProcessItem?
+    @Environment(\.openWindow) private var openWindow
     @State private var searchText = ""
     @State private var sortOrder = [KeyPathComparator(\ProcessItem.cpuUsage, order: .reverse)]
     @State private var showInspector = true
     @State private var showKillAlert = false
     @State private var forceKill = false
     @State private var viewMode: ViewMode = .list
-    @State private var networkActivity = NetworkActivity()
+    @Environment(NetworkActivity.self) private var networkActivity
 
 
     var body: some View {
@@ -44,9 +44,6 @@ struct ContentView: View {
         .toolbar { toolbarContent }
         .task {
             await networkActivity.monitor(processManager: processManager)
-        }
-        .sheet(item: $subprocessParent) { parent in
-            SubprocessSheet(parent: parent, networkActivity: networkActivity)
         }
         .onAppear {
             processManager.startMonitoring()
@@ -78,13 +75,13 @@ struct ContentView: View {
             ProcessListView(
                 selectedPID: $selectedPID, searchText: $searchText, sortOrder: $sortOrder,
                 networkActivity: networkActivity,
-                showSubprocesses: { subprocessParent = $0 }
+                showSubprocesses: { openWindow(value: SubprocessTarget(pid: $0.pid, name: $0.name)) }
             )
         case .tree:
             ProcessTreeView(
                 processes: networkActivity.addingCounters(to: filteredProcesses),
                 selectedPID: $selectedPID,
-                showSubprocesses: { subprocessParent = $0 }
+                showSubprocesses: { openWindow(value: SubprocessTarget(pid: $0.pid, name: $0.name)) }
             )
         case .network:
             NetworkActivityView(searchText: searchText, selectedPID: $selectedPID, activity: networkActivity)
