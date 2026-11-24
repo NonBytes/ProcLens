@@ -91,24 +91,7 @@ struct ProcessListView: View {
         .contextMenu(forSelectionType: Int32.self) { pids in
             if let pid = pids.first,
                let process = processManager.processes.first(where: { $0.pid == pid }) {
-                Button("Show Subprocesses") { showSubprocesses(process) }
-                Divider()
-                Button("Copy PID") { copyText("\(process.pid)") }
-                Button("Copy Name") { copyText(process.name) }
-                if !process.path.isEmpty {
-                    Button("Copy Path") { copyText(process.path) }
-                    Button("Reveal in Finder") {
-                        NSWorkspace.shared.selectFile(process.path, inFileViewerRootedAtPath: "")
-                    }
-                }
-                Divider()
-                if process.status == .stopped {
-                    Button("Resume (SIGCONT)") { _ = processManager.resumeProcess(pid) }
-                } else {
-                    Button("Suspend (SIGSTOP)") { _ = processManager.suspendProcess(pid) }
-                }
-                Button("Terminate (SIGTERM)") { _ = processManager.killProcess(pid) }
-                Button("Force Kill (SIGKILL)") { _ = processManager.killProcess(pid, force: true) }
+                ProcessContextMenu(process: process)
             }
         } primaryAction: { pids in
             if let pid = pids.first,
@@ -116,11 +99,6 @@ struct ProcessListView: View {
                 showSubprocesses(process)
             }
         }
-    }
-
-    private func copyText(_ text: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
     }
 
     private func iconTooltip(for p: ProcessItem) -> String {
@@ -153,5 +131,38 @@ struct MiniBar: View {
                     .frame(width: max(0, geo.size.width * value))
             }
         }
+    }
+}
+
+
+struct ProcessContextMenu: View {
+    let process: ProcessItem
+    @Environment(ProcessManager.self) private var processManager
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Show Subprocesses") { openWindow(value: SubprocessTarget(pid: process.pid, name: process.name)) }
+        Divider()
+        Button("Copy PID") { copyText("\(process.pid)") }
+        Button("Copy Name") { copyText(process.name) }
+        if !process.path.isEmpty {
+            Button("Copy Path") { copyText(process.path) }
+            Button("Reveal in Finder") {
+                NSWorkspace.shared.selectFile(process.path, inFileViewerRootedAtPath: "")
+            }
+        }
+        Divider()
+        if process.status == .stopped {
+            Button("Resume (SIGCONT)") { _ = processManager.resumeProcess(process.pid) }
+        } else {
+            Button("Suspend (SIGSTOP)") { _ = processManager.suspendProcess(process.pid) }
+        }
+        Button("Terminate (SIGTERM)") { _ = processManager.killProcess(process.pid) }
+        Button("Force Kill (SIGKILL)") { _ = processManager.killProcess(process.pid, force: true) }
+    }
+
+    private func copyText(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
     }
 }

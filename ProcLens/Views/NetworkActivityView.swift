@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct NetworkActivityView: View {
+    @Environment(ProcessManager.self) private var processManager
     let searchText: String
     @Binding var selectedPID: Int32?
     let activity: NetworkActivity
@@ -52,6 +53,12 @@ struct NetworkActivityView: View {
             }
         }
         .tableStyle(.inset(alternatesRowBackgrounds: true))
+        .contextMenu(forSelectionType: Int32.self) { pids in
+            if let pid = pids.first,
+               let process = processManager.processes.first(where: { $0.pid == pid }) {
+                ProcessContextMenu(process: process)
+            }
+        }
         .overlay {
             if rows.isEmpty {
                 ContentUnavailableView(

@@ -32,6 +32,7 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 | **Network Activity** | Sort processes by bytes received or sent and view live transfer rates for processes reported by macOS |
 | **Open Files** | All file descriptors with search filter |
 | **Environment Variables** | Full env dump per process with search |
+| **Process Context Menu** | Right-click a live process in List, Tree, or Network to show subprocesses, copy PID/name/path, reveal its executable in Finder, suspend/resume, terminate, or force kill |
 | **Suspend / Resume** | SIGSTOP / SIGCONT from toolbar or right-click menu |
 | **Kill Process** | SIGTERM or SIGKILL with confirmation dialog |
 | **Priority Control** | Adjust nice value with a slider |

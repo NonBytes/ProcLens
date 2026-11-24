@@ -122,9 +122,9 @@ struct ProcessTreeView: View {
         }
         .listStyle(.inset(alternatesRowBackgrounds: true))
         .contextMenu(forSelectionType: Int32.self) { pids in
-            if let showSubprocesses, let pid = pids.first,
+            if let pid = pids.first,
                let process = processManager.processes.first(where: { $0.pid == pid }) {
-                Button("Show Subprocesses") { showSubprocesses(process) }
+                ProcessContextMenu(process: process)
             }
         } primaryAction: { pids in
             if let showSubprocesses, let pid = pids.first,
