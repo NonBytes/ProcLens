@@ -26,8 +26,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nonbytes.ProcLens
-        MARKETING_VERSION: "1.1.3"
-        CURRENT_PROJECT_VERSION: "7"
+        MARKETING_VERSION: "1.1.4"
+        CURRENT_PROJECT_VERSION: "8"
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: ProcLens/ProcLens.entitlements
         SWIFT_OBJC_BRIDGING_HEADER: ProcLens/Bridge/ProcLens-Bridging-Header.h

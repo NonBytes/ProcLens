@@ -49,37 +49,54 @@ struct ProcessTreeView: View {
     var parentPID: Int32? = nil
     @Binding var selectedPID: Int32?
     var showSubprocesses: ((ProcessItem) -> Void)? = nil
+    @State private var columnWidths: [CGFloat] = [55, 200, 110, 85, 90, 80, 85, 75, 75]
+    @State private var resizeStart: CGFloat?
     @State private var isLaunchdExpanded = true
     @State private var sortOrder = KeyPathComparator(\ProcessItem.cpuUsage, order: .reverse)
     @Environment(ProcessManager.self) private var processManager
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 6) {
-                sortButton("PID", by: KeyPathComparator(\ProcessItem.pid))
-                    .frame(width: 55, alignment: .leading)
-                sortButton("Name", by: KeyPathComparator(\ProcessItem.name, comparator: .localizedStandard))
-                Spacer()
-                sortButton("CPU %", by: KeyPathComparator(\ProcessItem.cpuUsage, order: .reverse))
-                    .frame(width: 55, alignment: .trailing)
-                sortButton("Memory", by: KeyPathComparator(\ProcessItem.memoryUsage, order: .reverse))
-                    .frame(width: 75, alignment: .trailing)
-                sortButton("Received", by: KeyPathComparator(\ProcessItem.networkBytesReceived, order: .reverse))
-                    .frame(width: 85, alignment: .trailing)
-                sortButton("Sent", by: KeyPathComparator(\ProcessItem.networkBytesSent, order: .reverse))
-                    .frame(width: 75, alignment: .trailing)
-                sortButton("User", by: KeyPathComparator(\ProcessItem.user, comparator: .localizedStandard))
-                    .frame(width: 80, alignment: .trailing)
-                sortButton("Threads", by: KeyPathComparator(\ProcessItem.threadCount, order: .reverse))
-                    .frame(width: 65, alignment: .trailing)
-                sortButton("Status", by: KeyPathComparator(\ProcessItem.status))
-                    .frame(width: 65, alignment: .trailing)
+        GeometryReader { geometry in
+            ScrollView(.horizontal) {
+                VStack(spacing: 0) {
+                    HStack(spacing: 6) {
+                        sortButton("PID", by: KeyPathComparator(\ProcessItem.pid))
+                            .frame(minWidth: columnWidths[0], maxWidth: columnWidths[0], alignment: .leading)
+                            .overlay(alignment: .trailing) { resizeHandle(0) }
+                        sortButton("Name", by: KeyPathComparator(\ProcessItem.name, comparator: .localizedStandard))
+                            .frame(minWidth: columnWidths[1], maxWidth: columnWidths[1], alignment: .leading)
+                            .overlay(alignment: .trailing) { resizeHandle(1) }
+                        sortButton("CPU %", by: KeyPathComparator(\ProcessItem.cpuUsage, order: .reverse))
+                            .frame(minWidth: columnWidths[2], maxWidth: columnWidths[2], alignment: .trailing)
+                            .overlay(alignment: .trailing) { resizeHandle(2) }
+                        sortButton("Memory", by: KeyPathComparator(\ProcessItem.memoryUsage, order: .reverse))
+                            .frame(minWidth: columnWidths[3], maxWidth: columnWidths[3], alignment: .trailing)
+                            .overlay(alignment: .trailing) { resizeHandle(3) }
+                        sortButton("Received", by: KeyPathComparator(\ProcessItem.networkBytesReceived, order: .reverse))
+                            .frame(minWidth: columnWidths[4], maxWidth: columnWidths[4], alignment: .trailing)
+                            .overlay(alignment: .trailing) { resizeHandle(4) }
+                        sortButton("Sent", by: KeyPathComparator(\ProcessItem.networkBytesSent, order: .reverse))
+                            .frame(minWidth: columnWidths[5], maxWidth: columnWidths[5], alignment: .trailing)
+                            .overlay(alignment: .trailing) { resizeHandle(5) }
+                        sortButton("User", by: KeyPathComparator(\ProcessItem.user, comparator: .localizedStandard))
+                            .frame(minWidth: columnWidths[6], maxWidth: columnWidths[6], alignment: .trailing)
+                            .overlay(alignment: .trailing) { resizeHandle(6) }
+                        sortButton("Threads", by: KeyPathComparator(\ProcessItem.threadCount, order: .reverse))
+                            .frame(minWidth: columnWidths[7], maxWidth: columnWidths[7], alignment: .trailing)
+                            .overlay(alignment: .trailing) { resizeHandle(7) }
+                        sortButton("Status", by: KeyPathComparator(\ProcessItem.status))
+                            .frame(minWidth: columnWidths[8], maxWidth: columnWidths[8], alignment: .trailing)
+                            .overlay(alignment: .trailing) { resizeHandle(8) }
+                        Spacer(minLength: 0)
+                    }
+                    .font(.caption)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    Divider()
+                    processList
+                }
+                .frame(width: max(geometry.size.width, columnWidths.reduce(0, +) + 100), height: geometry.size.height)
             }
-            .font(.caption)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 6)
-            Divider()
-            processList
         }
     }
 
@@ -117,6 +134,26 @@ struct ProcessTreeView: View {
         }
     }
 
+    private func resizeHandle(_ column: Int) -> some View {
+        Rectangle()
+            .fill(Color.secondary.opacity(0.35))
+            .frame(width: 1, height: 18)
+            .frame(width: 10)
+            .contentShape(Rectangle())
+            .offset(x: 5)
+            .gesture(
+                DragGesture(minimumDistance: 1)
+                    .onChanged { value in
+                        let initial = resizeStart ?? columnWidths[column]
+                        resizeStart = initial
+                        columnWidths[column] = max(column == 1 ? 120 : 55, initial + value.translation.width)
+                    }
+                    .onEnded { _ in resizeStart = nil }
+            )
+            .help("Drag to resize column")
+            .accessibilityLabel("Resize column")
+    }
+
     private func sortButton(_ title: String, by comparator: KeyPathComparator<ProcessItem>) -> some View {
         let isActive = sortOrder.keyPath == comparator.keyPath
         return Button {
@@ -143,60 +180,63 @@ struct ProcessTreeView: View {
             Text("\(node.process.pid)")
                 .monospacedDigit()
                 .foregroundStyle(.tertiary)
-                .frame(width: 55, alignment: .leading)
+                .frame(width: columnWidths[0], alignment: .leading)
 
-            Image(nsImage: IconProvider.shared.appIcon(for: node.process))
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 16, height: 16)
-
-            Text(node.process.name)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            if processManager.historyTracker.hasMeaningfulCPU(for: node.process.pid) {
-                SparklineView(
-                    values: processManager.historyTracker.cpuHistory(for: node.process.pid),
-                    color: cpuColor(node.process.cpuUsage)
-                )
-                .frame(width: 40, height: 14)
+            HStack(spacing: 6) {
+                Image(nsImage: IconProvider.shared.appIcon(for: node.process))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16)
+                Text(node.process.name).lineLimit(1)
+                Spacer(minLength: 0)
             }
+            .frame(minWidth: columnWidths[1], maxWidth: columnWidths[1], alignment: .leading)
 
-            Text(node.process.formattedCPU)
-                .monospacedDigit()
-                .foregroundStyle(cpuColor(node.process.cpuUsage))
-                .frame(width: 55, alignment: .trailing)
+            HStack(spacing: 4) {
+                if processManager.historyTracker.hasMeaningfulCPU(for: node.process.pid) {
+                    SparklineView(
+                        values: processManager.historyTracker.cpuHistory(for: node.process.pid),
+                        color: cpuColor(node.process.cpuUsage)
+                    )
+                    .frame(width: 40, height: 14)
+                }
+                Text(node.process.formattedCPU)
+                    .monospacedDigit()
+                    .foregroundStyle(cpuColor(node.process.cpuUsage))
+            }
+            .frame(width: columnWidths[2], alignment: .trailing)
 
             Text(node.process.formattedMemory)
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
-                .frame(width: 75, alignment: .trailing)
+                .frame(width: columnWidths[3], alignment: .trailing)
 
             Text(node.process.networkCounters.map { NetworkCounters.formatBytes($0.received) } ?? "—")
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
-                .frame(width: 85, alignment: .trailing)
+                .frame(width: columnWidths[4], alignment: .trailing)
 
             Text(node.process.networkCounters.map { NetworkCounters.formatBytes($0.sent) } ?? "—")
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
-                .frame(width: 75, alignment: .trailing)
+                .frame(width: columnWidths[5], alignment: .trailing)
 
             Text(node.process.user)
                 .lineLimit(1)
                 .help(node.process.user)
-                .frame(width: 80, alignment: .trailing)
+                .frame(width: columnWidths[6], alignment: .trailing)
 
             Text("\(node.process.threadCount)")
                 .monospacedDigit()
-                .frame(width: 65, alignment: .trailing)
+                .frame(width: columnWidths[7], alignment: .trailing)
 
             Text(node.process.status.displayName)
                 .font(.caption)
                 .foregroundStyle(node.process.status.color)
                 .lineLimit(1)
-                .frame(width: 65, alignment: .trailing)
+                .frame(width: columnWidths[8], alignment: .trailing)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .font(.callout)
     }
 
