@@ -18,7 +18,6 @@ struct ContentView: View {
     @State private var showKillAlert = false
     @State private var forceKill = false
     @State private var viewMode: ViewMode = .list
-    @State private var columnSettings = ColumnSettings.shared
     @Environment(NetworkActivity.self) private var networkActivity
 
     init(initialSelectedPID: Int32? = nil, initialViewMode: ViewMode = .list) {
@@ -192,25 +191,7 @@ struct ContentView: View {
                 .help("Export process list to CSV (⌘E)")
             }
 
-            Menu {
-                Text("Table Columns")
-                Divider()
-                ForEach(ProcessColumn.allCases) { col in
-                    Toggle(col.displayName, isOn: Binding(
-                        get: { columnSettings.isVisible(col) },
-                        set: { _ in columnSettings.toggle(col) }
-                    ))
-                }
-                Divider()
-                Button("Reset to Defaults") {
-                    columnSettings.resetDefaults()
-                }
-            } label: {
-                Label("Columns", systemImage: "tablecells.badge.ellipsis")
-            }
-            .help("Customize visible columns")
-
-            ControlGroup {
+ControlGroup {
                 Toggle(isOn: $showInspector) {
                     Label("Inspector", systemImage: "sidebar.trailing")
                 }

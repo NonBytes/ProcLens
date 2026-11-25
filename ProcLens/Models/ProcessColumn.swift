@@ -95,57 +95,10 @@ enum ProcessColumn: String, CaseIterable, Identifiable, Codable, Hashable {
     }
 }
 
-@Observable
-final class ColumnSettings {
-    static let shared = ColumnSettings()
-
-    var visibleColumns: [ProcessColumn] {
-        didSet { save() }
-    }
-
-    private let defaultsKey = "ProcLens.VisibleColumns"
-
+enum ColumnSettings {
+    /// Columns visible by default; the rest start hidden until shown via the
+    /// table header's native right-click customization menu.
     static let defaultColumns: [ProcessColumn] = [
         .pid, .name, .cpu, .memory, .received, .sent, .user, .threads, .status, .ports, .arch
     ]
-
-    init() {
-        if let data = UserDefaults.standard.data(forKey: defaultsKey),
-           let decoded = try? JSONDecoder().decode([ProcessColumn].self, from: data),
-           !decoded.isEmpty {
-            self.visibleColumns = decoded
-        } else {
-            self.visibleColumns = Self.defaultColumns
-        }
-    }
-
-    func isVisible(_ col: ProcessColumn) -> Bool {
-        visibleColumns.contains(col)
-    }
-
-    func toggle(_ col: ProcessColumn) {
-        if visibleColumns.contains(col) {
-            // Keep at least 1 column
-            if visibleColumns.count > 1 {
-                visibleColumns.removeAll { $0 == col }
-            }
-        } else {
-            // Insert in default column order
-            let all = ProcessColumn.allCases
-            var newCols = visibleColumns
-            newCols.append(col)
-            newCols.sort { (all.firstIndex(of: $0) ?? 0) < (all.firstIndex(of: $1) ?? 0) }
-            visibleColumns = newCols
-        }
-    }
-
-    func resetDefaults() {
-        visibleColumns = Self.defaultColumns
-    }
-
-    private func save() {
-        if let encoded = try? JSONEncoder().encode(visibleColumns) {
-            UserDefaults.standard.set(encoded, forKey: defaultsKey)
-        }
-    }
 }
