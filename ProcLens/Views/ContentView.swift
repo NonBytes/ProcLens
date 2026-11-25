@@ -48,16 +48,15 @@ struct ContentView: View {
         }
         .searchable(text: $searchText, prompt: "Search processes...")
         .toolbar { toolbarContent }
-        .task {
-            await networkActivity.monitor(processManager: processManager)
-        }
         .onAppear {
             processManager.startMonitoring()
             systemMonitor.startMonitoring()
+            networkActivity.startMonitoring(processManager: processManager)
         }
         .onDisappear {
             processManager.stopMonitoring()
             systemMonitor.stopMonitoring()
+            networkActivity.stopMonitoring()
         }
         .alert("Kill Process?", isPresented: $showKillAlert) {
             Button("Cancel", role: .cancel) {}
@@ -95,36 +94,7 @@ struct ContentView: View {
     }
 
     private var statusBar: some View {
-        HStack(spacing: 12) {
-            if viewMode == .network {
-                statusItem(icon: "network", text: "Network counters reported by macOS")
-                Spacer()
-                statusItem(icon: "clock.arrow.circlepath", text: "Samples ~every \(Int(max(5, processManager.refreshInterval)))s")
-            } else {
-                statusItem(icon: "square.stack.3d.up", text: "\(processManager.processes.count) processes")
-                if !searchText.isEmpty {
-                    statusItem(icon: "magnifyingglass", text: "\(filteredProcesses.count) shown")
-                }
-                Spacer()
-                if processManager.isRefreshing {
-                    ProgressView()
-                        .controlSize(.mini)
-                }
-                statusItem(icon: "clock.arrow.circlepath", text: "Refresh \(Int(processManager.refreshInterval))s")
-            }
-        }
-        .font(.caption)
-        .monospacedDigit()
-        .foregroundStyle(.secondary)
-        .imageScale(.small)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 5)
-        .background(.bar)
-    }
-
-    private func statusItem(icon: String, text: String) -> some View {
-        Label(text, systemImage: icon)
-            .labelStyle(.titleAndIcon)
+        ProcessStatusBar(viewMode: viewMode, searchText: searchText)
     }
 
     @ToolbarContentBuilder
@@ -230,6 +200,63 @@ ControlGroup {
         panel.begin { response in
             guard response == .OK, let url = panel.url else { return }
             try? processManager.exportCSV().write(to: url, atomically: true, encoding: .utf8)
+        }
+    }
+}
+
+// Refresh progress changes twice per sample. Observe it here so it only redraws
+// the status bar, rather than rebuilding the table and inspector above it.
+private struct ProcessStatusBar: View {
+    let viewMode: ViewMode
+    let searchText: String
+    @Environment(ProcessManager.self) private var processManager
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if viewMode == .network {
+                statusItem(icon: "network", text: "Network counters reported by macOS")
+                Spacer()
+                statusItem(icon: "clock.arrow.circlepath", text: "Samples ~every \(Int(max(5, processManager.refreshInterval)))s")
+            } else {
+                statusItem(icon: "square.stack.3d.up", text: "\(processManager.processes.count) processes")
+                if !searchText.isEmpty {
+                    statusItem(icon: "magnifyingglass", text: "\(matchingCount) shown")
+                }
+                Spacer()
+                if processManager.isRefreshing {
+                    ProgressView()
+                        .controlSize(.mini)
+                }
+                statusItem(icon: "clock.arrow.circlepath", text: "Refresh \(Int(processManager.refreshInterval))s")
+            }
+        }
+        .font(.caption)
+        .monospacedDigit()
+        .foregroundStyle(.secondary)
+        .imageScale(.small)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 5)
+        .background(.bar)
+    }
+
+    private func statusItem(icon: String, text: String) -> some View {
+        Label(text, systemImage: icon)
+            .labelStyle(.titleAndIcon)
+    }
+
+    private var matchingCount: Int {
+        let query = searchText
+        let cleanQuery = query.hasPrefix(":") ? String(query.dropFirst()) : query
+        return processManager.processes.reduce(into: 0) { count, p in
+            if p.name.localizedCaseInsensitiveContains(query)
+                || String(p.pid).contains(query)
+                || p.user.localizedCaseInsensitiveContains(query)
+                || p.path.localizedCaseInsensitiveContains(query)
+                || p.ports.contains(where: { $0.contains(cleanQuery) })
+                || p.archShortName.localizedCaseInsensitiveContains(query)
+                || p.signatureBadgeText.localizedCaseInsensitiveContains(query) {
+                count += 1
+            }
         }
     }
 }

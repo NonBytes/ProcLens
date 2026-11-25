@@ -83,7 +83,12 @@ enum NetworkSampler {
 
 @Observable
 final class NetworkActivity {
-    private(set) var rows: [Int32: Row] = [:]
+    private(set) var rows: [Int32: Row] = [:] {
+        didSet { revision &+= 1 }
+    }
+    private(set) var revision: UInt64 = 0
+    @ObservationIgnored private var monitoringTask: Task<Void, Never>?
+    @ObservationIgnored private var monitoringClients = 0
     private(set) var history: [NetworkCounters] = []
     private(set) var isLoading = true
     private(set) var hasError = false
@@ -110,7 +115,25 @@ final class NetworkActivity {
     }
 
     @MainActor
-    func monitor(processManager: ProcessManager) async {
+    func startMonitoring(processManager: ProcessManager) {
+        monitoringClients += 1
+        guard monitoringClients == 1 else { return }
+        monitoringTask = Task { [weak self] in
+            await self?.monitor(processManager: processManager)
+        }
+    }
+
+    @MainActor
+    func stopMonitoring() {
+        guard monitoringClients > 0 else { return }
+        monitoringClients -= 1
+        guard monitoringClients == 0 else { return }
+        monitoringTask?.cancel()
+        monitoringTask = nil
+    }
+
+    @MainActor
+    private func monitor(processManager: ProcessManager) async {
         let clock = ContinuousClock()
         var previous: NetworkSample?
         while !Task.isCancelled {

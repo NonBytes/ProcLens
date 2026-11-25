@@ -42,6 +42,10 @@ ProcLens watches every process on your Mac in real time: CPU and memory history,
 | **Real App Icons** | Shows the actual app bundle icon for apps and their bundled helper executables |
 | **Search** | Filter processes by name, PID, user, or path |
 
+## Resource use
+
+Version 1.1.8 bounds the app icon cache and stores display-sized icons, removes signature cache entries for ended processes, and keeps 30 CPU/memory samples per live process in a ring buffer. List reuses filtered/sorted rows until process data, network data, search, or sorting changes. Multiple main windows share monitoring timers and one network sampler.
+
 ## Network usage
 
 - In **List** and **Tree**, **Received** and **Sent** show cumulative bytes per process. Click a column header to sort.

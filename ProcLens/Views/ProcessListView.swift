@@ -10,7 +10,19 @@ struct ProcessListView: View {
 
     @AppStorage("ProcLens.ListColumnCustomization") private var columnCustomization = TableColumnCustomization<ProcessItem>()
 
+    @State private var projection = ProcessListProjection()
+
     private var displayProcesses: [ProcessItem] {
+        projection.rows(
+            processRevision: processManager.revision,
+            networkRevision: networkActivity.revision,
+            searchText: searchText, sortOrder: sortOrder
+        ) {
+            makeDisplayProcesses()
+        }
+    }
+
+    private func makeDisplayProcesses() -> [ProcessItem] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         let base: [ProcessItem]
         if query.isEmpty {
@@ -346,5 +358,32 @@ struct ProcessContextMenu: View {
     private func copyText(_ text: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
+    }
+}
+
+// The key deliberately excludes selection and column layout: neither changes rows.
+// Store only the latest projection so repeated UI updates do not sort the full list.
+final class ProcessListProjection {
+    private struct Key: Equatable {
+        let processRevision: UInt64
+        let networkRevision: UInt64
+        let searchText: String
+        let sortOrder: [KeyPathComparator<ProcessItem>]
+    }
+    private var key: Key?
+    private var cachedRows: [ProcessItem] = []
+
+    func rows(
+        processRevision: UInt64, networkRevision: UInt64,
+        searchText: String, sortOrder: [KeyPathComparator<ProcessItem>],
+        build: () -> [ProcessItem]
+    ) -> [ProcessItem] {
+        let nextKey = Key(processRevision: processRevision, networkRevision: networkRevision,
+                          searchText: searchText, sortOrder: sortOrder)
+        if key != nextKey {
+            cachedRows = build()
+            key = nextKey
+        }
+        return cachedRows
     }
 }

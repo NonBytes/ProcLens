@@ -33,16 +33,23 @@ final class SystemMonitor {
     var stats = SystemStats()
 
     private var previousTicks: (user: UInt64, system: UInt64, idle: UInt64, nice: UInt64)?
-    private var timer: Timer?
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var monitoringClients = 0
 
     func startMonitoring() {
+        monitoringClients += 1
+        guard monitoringClients == 1 else { return }
         refresh()
         timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             self?.refresh()
         }
+        timer?.tolerance = 0.2
     }
 
     func stopMonitoring() {
+        guard monitoringClients > 0 else { return }
+        monitoringClients -= 1
+        guard monitoringClients == 0 else { return }
         timer?.invalidate()
         timer = nil
     }

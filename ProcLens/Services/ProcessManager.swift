@@ -4,7 +4,10 @@ import Observation
 
 @Observable
 final class ProcessManager {
-    var processes: [ProcessItem] = []
+    var processes: [ProcessItem] = [] {
+        didSet { revision &+= 1 }
+    }
+    private(set) var revision: UInt64 = 0
     var isRefreshing = false
     var refreshInterval: TimeInterval = 2.0 {
         didSet { restartTimer() }
@@ -13,20 +16,27 @@ final class ProcessManager {
 
     @ObservationIgnored private var previousCPUTimes: [Int32: (user: UInt64, system: UInt64, time: UInt64)] = [:]
     @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var monitoringClients = 0
     @ObservationIgnored private var nameCache: [Int32: String] = [:]
     @ObservationIgnored private var pathCache: [Int32: String] = [:]
     @ObservationIgnored private var userCache: [uid_t: String] = [:]
     @ObservationIgnored private var archCache: [Int32: ProcessArchitecture] = [:]
     @ObservationIgnored private var signatureCache: [String: (status: SignatureStatus, authority: String?)] = [:]
     @ObservationIgnored private var portMap: [Int32: [String]] = [:]
+    @ObservationIgnored private var isSamplingPorts = false
     @ObservationIgnored private var lastPortSampleTime: CFAbsoluteTime = 0
 
     func startMonitoring() {
+        monitoringClients += 1
+        guard monitoringClients == 1 else { return }
         refresh()
         startTimer()
     }
 
     func stopMonitoring() {
+        guard monitoringClients > 0 else { return }
+        monitoringClients -= 1
+        guard monitoringClients == 0 else { return }
         timer?.invalidate()
         timer = nil
     }
@@ -35,9 +45,11 @@ final class ProcessManager {
         guard !isRefreshing else { return }
         isRefreshing = true
         samplePortsIfNeeded()
+        // Snapshot main-thread state before port sampling publishes another map.
+        let ports = portMap
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
-            let newProcesses = self.fetchProcesses()
+            let newProcesses = autoreleasepool { self.fetchProcesses(ports: ports) }
             DispatchQueue.main.async {
                 self.historyTracker.recordAll(newProcesses)
                 self.processes = newProcesses
@@ -82,14 +94,16 @@ final class ProcessManager {
         timer = Timer.scheduledTimer(withTimeInterval: refreshInterval, repeats: true) { [weak self] _ in
             self?.refresh()
         }
+        timer?.tolerance = min(0.2, refreshInterval * 0.1)
     }
 
     private func restartTimer() {
-        stopMonitoring()
+        guard monitoringClients > 0 else { return }
+        timer?.invalidate()
         startTimer()
     }
 
-    private func fetchProcesses() -> [ProcessItem] {
+    private func fetchProcesses(ports: [Int32: [String]]) -> [ProcessItem] {
         var numPids = proc_listallpids(nil, 0)
         guard numPids > 0 else { return [] }
         var pids = [pid_t](repeating: 0, count: Int(numPids))
@@ -100,10 +114,14 @@ final class ProcessManager {
         var result: [ProcessItem] = []
         var newCPUTimes: [Int32: (user: UInt64, system: UInt64, time: UInt64)] = [:]
 
+        result.reserveCapacity(Int(numPids))
+        newCPUTimes.reserveCapacity(Int(numPids))
         for i in 0..<Int(numPids) {
             let pid = pids[i]
             if pid <= 0 { continue }
-            guard let item = buildProcessItem(pid: pid, now: now, cpuTimesOut: &newCPUTimes) else { continue }
+            guard let item = autoreleasepool(invoking: {
+                buildProcessItem(pid: pid, now: now, ports: ports[pid] ?? [], cpuTimesOut: &newCPUTimes)
+            }) else { continue }
             result.append(item)
         }
         previousCPUTimes = newCPUTimes
@@ -113,17 +131,21 @@ final class ProcessManager {
             pathCache.removeValue(forKey: pid)
             archCache.removeValue(forKey: pid)
         }
+        let activePaths = Set(result.lazy.map(\.path))
+        signatureCache = signatureCache.filter { activePaths.contains($0.key) }
         return result
     }
 
     private func samplePortsIfNeeded() {
         let now = CFAbsoluteTimeGetCurrent()
-        guard now - lastPortSampleTime >= 2.0 else { return }
+        guard !isSamplingPorts, now - lastPortSampleTime >= 2.0 else { return }
         lastPortSampleTime = now
+        isSamplingPorts = true
         DispatchQueue.global(qos: .utility).async { [weak self] in
-            let map = Self.fetchListeningPorts()
+            let map = autoreleasepool { Self.fetchListeningPorts() }
             DispatchQueue.main.async {
                 self?.portMap = map
+                self?.isSamplingPorts = false
             }
         }
     }
@@ -134,7 +156,8 @@ final class ProcessManager {
         task.arguments = ["-nP", "-iTCP", "-sTCP:LISTEN", "-iUDP"]
         let pipe = Pipe()
         task.standardOutput = pipe
-        try? task.run()
+        task.standardError = FileHandle.nullDevice
+        do { try task.run() } catch { return [:] }
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         task.waitUntilExit()
         guard let output = String(data: data, encoding: .utf8) else { return [:] }
@@ -158,7 +181,7 @@ final class ProcessManager {
     }
 
     private func buildProcessItem(
-        pid: Int32, now: UInt64,
+        pid: Int32, now: UInt64, ports: [String],
         cpuTimesOut: inout [Int32: (user: UInt64, system: UInt64, time: UInt64)]
     ) -> ProcessItem? {
         var kinfo = kinfo_proc()
@@ -216,8 +239,6 @@ final class ProcessManager {
 
         let startSec = kinfo.kp_proc.p_starttime.tv_sec
         let startTime = startSec > 0 ? Date(timeIntervalSince1970: TimeInterval(startSec)) : nil
-
-        let ports = portMap[pid] ?? []
 
         var sigStatus = SignatureStatus.unavailable
         var sigAuth: String? = nil
