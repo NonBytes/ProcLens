@@ -5,7 +5,7 @@
 <h1 align="center">ProcLens</h1>
 
 <p align="center">
-  <strong>macOS Process Monitor</strong> — inspired by Process Hacker
+  <strong>A native macOS process monitor</strong> — inspired by Process Hacker
 </p>
 
 <p align="center">
@@ -16,68 +16,68 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/proclens-main.png" width="880" alt="ProcLens Main Interface">
+  <img src="docs/screenshots/proclens-main.png" width="880" alt="ProcLens process list with the inspector panel open">
 </p>
 
 ---
 
-Native SwiftUI app for real-time process monitoring on macOS. View, search, sort, suspend, kill, and inspect every process running on your Mac.
+ProcLens watches every process on your Mac in real time: CPU and memory history, network throughput, disk I/O, open files, loaded modules, code signature, and more — in a single fast, native window. View, search, sort, suspend, kill, and inspect any process without touching Terminal.
 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/proclens-tree.png" width="880" alt="ProcLens Process Tree View">
+  <img src="docs/screenshots/proclens-tree.png" width="880" alt="ProcLens process tree view with launchd and its children expanded">
 </p>
-<p align="center"><em>Process Tree View: Hierarchical parent-child relationship with full column sorting</em></p>
+<p align="center"><em>Process Tree — parent/child hierarchy, with the inspector showing a selected process's CPU and memory history</em></p>
 
 <br>
 
 <p align="center">
-  <img src="docs/screenshots/proclens-network.png" width="880" alt="ProcLens Network Activity Monitor">
+  <img src="docs/screenshots/proclens-network.png" width="880" alt="ProcLens network activity view with per-process throughput">
 </p>
-<p align="center"><em>Network Activity: Real-time throughput rates, bandwidth sparklines, and socket metrics</em></p>
+<p align="center"><em>Network Activity — live received/sent rates per process, plus combined throughput graphs</em></p>
 
 ## Features
 
 | Feature | Description |
 |---------|-------------|
-| **Process List** | Sortable columns · PID, Name, CPU %, Memory, Received, Sent, User, Threads, Status, Ports, Arch, Disk Read, Disk Write, Uptime, Signature, PPID |
-| **Customizable Columns** | Right-click any column header to show or hide columns, drag a header to reorder it, or drag a divider to resize it |
-| **Sparkline Graphs** | Real-time CPU history per process, inline in the table |
-| **Process Tree** | Same customizable columns as List, in a hierarchical parent-child view. Click a header to sort siblings and click again to reverse the order. Click the disclosure arrow next to `launchd` (PID 1) to expand it |
-| **Subprocesses** | Double-click a process in List or Tree, or right-click and choose **Show Subprocesses**, to open a resizable window |
-| **Inspector Panel** | Info (Signature, Entitlements, Launch Origin), Modules (`vmmap`), Network, Files, and Env tabs load for the selected process |
+| **Process List & Tree** | PID, Name, CPU %, Memory, Received, Sent, User, Threads, Status, Ports, Arch, Disk Read, Disk Write, Uptime, Signature, and PPID — sortable, and shared between the flat List and hierarchical Tree views |
+| **Customizable Columns** | Right-click any column header for a native show/hide menu, drag a header to reorder it, or drag a divider to resize it — order and visibility are remembered per view |
+| **Sparkline Graphs** | Real-time CPU history per process, inline in the table and in the inspector |
+| **Process Tree** | Parent/child hierarchy rooted at `launchd`. Click a header to sort siblings; click again to reverse. Click a disclosure arrow to expand a branch |
+| **Subprocesses** | Double-click a process, or right-click → **Show Subprocesses**, to open its children in a resizable window |
+| **Inspector Panel** | **Info** (status, architecture, code signature, team ID, launch origin, priority), **Modules** (loaded frameworks via `vmmap`, with click-to-copy full paths), **Network**, **Files**, and **Env** tabs for the selected process |
 | **Network Connections** | Per-process TCP/UDP connections and listening ports |
-| **Network Activity** | Sort processes by bytes received or sent and view live transfer rates for processes reported by macOS |
-| **Open Files** | All file descriptors with search filter |
-| **Environment Variables** | Full env dump per process with search |
-| **Process Context Menu** | Right-click a live process in List, Tree, or Network to show subprocesses, copy PID/name/path, reveal its executable in Finder, suspend/resume, terminate, or force kill |
-| **Suspend / Resume** | SIGSTOP / SIGCONT from toolbar or right-click menu |
-| **Kill Process** | SIGTERM or SIGKILL with confirmation dialog |
-| **Priority Control** | Adjust nice value with a slider |
-| **Export CSV** | Export full process list to CSV |
-| **Dark / Light Theme** | System, Light, or Dark — switchable from menu bar |
-| **Real App Icons** | Displays the app bundle icon for apps and their bundled executables |
+| **Network Activity** | A dedicated view sorted by throughput, with live received/sent rates for every process macOS reports |
+| **Open Files** | Every file descriptor held by a process, with a search filter |
+| **Environment Variables** | Full environment dump per process, with search |
+| **Process Context Menu** | Right-click any process to show its subprocesses, copy PID/name/path, reveal it in Finder, suspend/resume, terminate, or force kill |
+| **Suspend / Resume** | SIGSTOP / SIGCONT from the toolbar or the right-click menu |
+| **Kill Process** | SIGTERM or SIGKILL, with a confirmation dialog |
+| **Priority Control** | Adjust a process's nice value with a slider |
+| **Export CSV** | Export the full process list for offline analysis |
+| **Dark / Light Theme** | System, Light, or Dark, switchable from the menu bar |
+| **Real App Icons** | Shows the actual app bundle icon for apps and their bundled helper executables |
 | **Search** | Filter processes by name, PID, user, or path |
 
 ## Network usage
 
 - In **List** and **Tree**, **Received** and **Sent** show cumulative bytes per process. Click a column header to sort.
-- Open **Network** and look at **Received/s** and **Sent/s** for transfer speeds. The graphs below show combined rates for the processes that macOS reports through `nettop`.
-- A dash indicates missing data. Rates appear after two samples. A zero rate means the counter did not increase during the measured interval.
-- Select a process and open **Network** in the Inspector to see its TCP and UDP connections.
+- Open **Network** and look at **Received/s** and **Sent/s** for live transfer speeds. The graphs below the table show combined rates for every process macOS reports through `nettop`.
+- A dash means no data is available yet. Rates appear after two samples; a zero rate means the counter didn't increase during the sampling interval.
+- Select a process and open the **Network** inspector tab to see its individual TCP and UDP connections.
 
 ## Install
 
 ### Download
 
-Grab the latest DMG from [Releases](https://github.com/NonBytes/ProcLens/releases/latest), open it, and drag **ProcLens** to **Applications**.
+Grab the latest DMG from [Releases](https://github.com/NonBytes/ProcLens/releases/latest), open it, and drag **ProcLens** into **Applications**.
 
-New builds target Apple Silicon. [ProcLens v1.0.2](https://github.com/NonBytes/ProcLens/releases/tag/v1.0.2) is the last release for Intel Macs and includes both Intel and Apple Silicon binaries. The DMG contains an ad hoc signed app without Apple notarization.
+New builds target Apple Silicon only. [ProcLens v1.0.2](https://github.com/NonBytes/ProcLens/releases/tag/v1.0.2) is the last release with an Intel binary. The DMG contains an ad-hoc signed app without Apple notarization — on first launch, right-click the app and choose **Open** to bypass Gatekeeper.
 
 ### Build from source
 
-Requires Xcode 16 or later. Open the checked-in Xcode project and build and run with `⌘R`.
+Requires Xcode 16 or later.
 
 ```bash
 git clone https://github.com/NonBytes/ProcLens.git
@@ -85,7 +85,7 @@ cd ProcLens
 open ProcLens.xcodeproj
 ```
 
-Use [XcodeGen](https://github.com/yonaskolb/XcodeGen) to regenerate the project when editing `project.yml`. Pushing a new version tag triggers the GitHub Actions workflow that builds and publishes the Apple Silicon DMG.
+Build and run with `⌘R`. Use [XcodeGen](https://github.com/yonaskolb/XcodeGen) to regenerate `ProcLens.xcodeproj` after editing `project.yml`. Pushing a `vX.Y.Z` tag triggers the GitHub Actions workflow that builds and publishes the Apple Silicon DMG.
 
 ## Keyboard Shortcuts
 
@@ -97,7 +97,7 @@ Use [XcodeGen](https://github.com/yonaskolb/XcodeGen) to regenerate the project 
 ## Requirements
 
 - macOS 14.4 (Sonoma) or later
-- Apple Silicon Mac. Intel Macs can use v1.0.2.
+- Apple Silicon Mac — Intel Macs can use [v1.0.2](https://github.com/NonBytes/ProcLens/releases/tag/v1.0.2)
 
 ## Architecture
 
@@ -116,10 +116,11 @@ ProcLens/
 
 ## Tech Stack
 
-- **SwiftUI** + **@Observable** (macOS 14 Observation framework)
+- **SwiftUI** + **@Observable** (macOS 14 Observation framework), with native `Table` + `TableColumnCustomization` for the process views
 - **Darwin APIs** — `sysctl`, `proc_pidinfo`, `proc_listallpids`, `host_processor_info`
 - **lsof** — network connections and open files (on-demand)
 - **nettop** — per-process network byte counters
+- **vmmap** — loaded modules for the Modules inspector tab
 - **KERN_PROCARGS2** — environment variable extraction
 
 ## License
