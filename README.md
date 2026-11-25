@@ -42,9 +42,9 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 | Feature | Description |
 |---------|-------------|
 | **Process List** | Sortable columns · PID, Name, CPU %, Memory, Received, Sent, User, Threads, Status, Ports, Arch, Disk Read, Disk Write, Uptime, Signature, PPID |
-| **Customizable Columns** | Show or hide any column from the toolbar's **Columns** menu |
+| **Customizable Columns** | Right-click any column header to show or hide columns, drag a header to reorder it, or drag a divider to resize it |
 | **Sparkline Graphs** | Real-time CPU history per process, inline in the table |
-| **Process Tree** | Same customizable columns as List, in a hierarchical parent-child view. Click a header to sort siblings and click again to reverse the order. Drag a header divider to resize its column. Click the disclosure arrow next to `launchd` (PID 1) to expand it |
+| **Process Tree** | Same customizable columns as List, in a hierarchical parent-child view. Click a header to sort siblings and click again to reverse the order. Click the disclosure arrow next to `launchd` (PID 1) to expand it |
 | **Subprocesses** | Double-click a process in List or Tree, or right-click and choose **Show Subprocesses**, to open a resizable window |
 | **Inspector Panel** | Info (Signature, Entitlements, Launch Origin), Modules (`vmmap`), Network, Files, and Env tabs load for the selected process |
 | **Network Connections** | Per-process TCP/UDP connections and listening ports |

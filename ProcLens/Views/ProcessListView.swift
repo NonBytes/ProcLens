@@ -8,7 +8,7 @@ struct ProcessListView: View {
     let networkActivity: NetworkActivity
     let showSubprocesses: (ProcessItem) -> Void
 
-    @State private var columnSettings = ColumnSettings.shared
+    @AppStorage("ProcLens.ListColumnCustomization") private var columnCustomization = TableColumnCustomization<ProcessItem>()
 
     private var displayProcesses: [ProcessItem] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -32,31 +32,35 @@ struct ProcessListView: View {
 
     @TableColumnBuilder<ProcessItem, KeyPathComparator<ProcessItem>>
     private var primaryColumns: some TableColumnContent<ProcessItem, KeyPathComparator<ProcessItem>> {
-        let cols = columnSettings.visibleColumns
-        if cols.count > 0 { column(for: cols[0]) }
-        if cols.count > 1 { column(for: cols[1]) }
-        if cols.count > 2 { column(for: cols[2]) }
-        if cols.count > 3 { column(for: cols[3]) }
-        if cols.count > 4 { column(for: cols[4]) }
-        if cols.count > 5 { column(for: cols[5]) }
-        if cols.count > 6 { column(for: cols[6]) }
-        if cols.count > 7 { column(for: cols[7]) }
+        column(for: .pid)
+        column(for: .name)
+        column(for: .cpu)
+        column(for: .memory)
+        column(for: .received)
+        column(for: .sent)
+        column(for: .user)
+        column(for: .threads)
     }
 
     @TableColumnBuilder<ProcessItem, KeyPathComparator<ProcessItem>>
     private var secondaryColumns: some TableColumnContent<ProcessItem, KeyPathComparator<ProcessItem>> {
-        let cols = columnSettings.visibleColumns
-        if cols.count > 8 { column(for: cols[8]) }
-        if cols.count > 9 { column(for: cols[9]) }
-        if cols.count > 10 { column(for: cols[10]) }
-        if cols.count > 11 { column(for: cols[11]) }
-        if cols.count > 12 { column(for: cols[12]) }
-        if cols.count > 13 { column(for: cols[13]) }
-        if cols.count > 14 { column(for: cols[14]) }
-        if cols.count > 15 { column(for: cols[15]) }
+        column(for: .status)
+        column(for: .ports)
+        column(for: .arch)
+        column(for: .diskRead)
+        column(for: .diskWrite)
+        column(for: .uptime)
+        column(for: .signature)
+        column(for: .ppid)
     }
 
-    private func column(for col: ProcessColumn) -> TableColumn<ProcessItem, KeyPathComparator<ProcessItem>, AnyView, Text> {
+    private func column(for col: ProcessColumn) -> some TableColumnContent<ProcessItem, KeyPathComparator<ProcessItem>> {
+        baseColumn(for: col)
+            .customizationID(col.rawValue)
+            .defaultVisibility(ColumnSettings.defaultColumns.contains(col) ? .visible : .hidden)
+    }
+
+    private func baseColumn(for col: ProcessColumn) -> TableColumn<ProcessItem, KeyPathComparator<ProcessItem>, AnyView, Text> {
         switch col {
         case .pid:
             TableColumn("PID", value: \.pid) { p in
@@ -240,7 +244,7 @@ struct ProcessListView: View {
     }
 
     var body: some View {
-        Table(displayProcesses, selection: $selectedPID, sortOrder: $sortOrder) {
+        Table(displayProcesses, selection: $selectedPID, sortOrder: $sortOrder, columnCustomization: $columnCustomization) {
             primaryColumns
             secondaryColumns
         }
