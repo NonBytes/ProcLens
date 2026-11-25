@@ -15,27 +15,9 @@
   <img src="https://img.shields.io/github/v/release/NonBytes/ProcLens" alt="Release">
 </p>
 
-<p align="center">
-  <img src="docs/screenshots/proclens-main.png" width="880" alt="ProcLens process list with the inspector panel open">
-</p>
-
 ---
 
 ProcLens watches every process on your Mac in real time: CPU and memory history, network throughput, disk I/O, open files, loaded modules, code signature, and more — in a single fast, native window. View, search, sort, suspend, kill, and inspect any process without touching Terminal.
-
-## Screenshots
-
-<p align="center">
-  <img src="docs/screenshots/proclens-tree.png" width="880" alt="ProcLens process tree view with launchd and its children expanded">
-</p>
-<p align="center"><em>Process Tree — parent/child hierarchy, with the inspector showing a selected process's CPU and memory history</em></p>
-
-<br>
-
-<p align="center">
-  <img src="docs/screenshots/proclens-network.png" width="880" alt="ProcLens network activity view with per-process throughput">
-</p>
-<p align="center"><em>Network Activity — live received/sent rates per process, plus combined throughput graphs</em></p>
 
 ## Features
 
