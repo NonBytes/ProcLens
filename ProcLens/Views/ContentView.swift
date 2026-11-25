@@ -18,7 +18,13 @@ struct ContentView: View {
     @State private var showKillAlert = false
     @State private var forceKill = false
     @State private var viewMode: ViewMode = .list
+    @State private var columnSettings = ColumnSettings.shared
     @Environment(NetworkActivity.self) private var networkActivity
+
+    init(initialSelectedPID: Int32? = nil, initialViewMode: ViewMode = .list) {
+        _selectedPID = State(initialValue: initialSelectedPID)
+        _viewMode = State(initialValue: initialViewMode)
+    }
 
 
     var body: some View {
@@ -26,14 +32,15 @@ struct ContentView: View {
             SystemStatsView()
             Divider()
 
-            HStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
                 mainContent
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
                 if showInspector, let process = selectedProcess {
                     Divider()
                     ProcessDetailView(process: process)
-                        .frame(width: 320)
+                        .frame(width: 380)
+                        .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
 
@@ -63,7 +70,7 @@ struct ContentView: View {
                 Text("Are you sure you want to \(forceKill ? "force kill" : "terminate") \"\(p.name)\" (PID \(p.pid))?")
             }
         }
-        .frame(minWidth: viewMode == .tree && showInspector && selectedProcess != nil ? 1040 : 900, minHeight: 500)
+        .frame(minWidth: viewMode == .tree && showInspector && selectedProcess != nil ? 1100 : 960, minHeight: 500)
     }
 
     // MARK: - Main Content
@@ -89,22 +96,36 @@ struct ContentView: View {
     }
 
     private var statusBar: some View {
-        HStack {
+        HStack(spacing: 12) {
             if viewMode == .network {
-                Text("Network counters reported by macOS")
+                statusItem(icon: "network", text: "Network counters reported by macOS")
                 Spacer()
-                Text("Samples: ~\(Int(max(5, processManager.refreshInterval)))s")
+                statusItem(icon: "clock.arrow.circlepath", text: "Samples ~every \(Int(max(5, processManager.refreshInterval)))s")
             } else {
-                Text("\(processManager.processes.count) processes")
-                if !searchText.isEmpty { Text("(\(filteredProcesses.count) shown)") }
+                statusItem(icon: "square.stack.3d.up", text: "\(processManager.processes.count) processes")
+                if !searchText.isEmpty {
+                    statusItem(icon: "magnifyingglass", text: "\(filteredProcesses.count) shown")
+                }
                 Spacer()
-                if processManager.isRefreshing { ProgressView().controlSize(.mini) }
-                Text("Refresh: \(Int(processManager.refreshInterval))s")
+                if processManager.isRefreshing {
+                    ProgressView()
+                        .controlSize(.mini)
+                }
+                statusItem(icon: "clock.arrow.circlepath", text: "Refresh \(Int(processManager.refreshInterval))s")
             }
         }
-        .font(.caption).foregroundStyle(.secondary)
-        .padding(.horizontal, 16).padding(.vertical, 4)
+        .font(.caption)
+        .monospacedDigit()
+        .foregroundStyle(.secondary)
+        .imageScale(.small)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 5)
         .background(.bar)
+    }
+
+    private func statusItem(icon: String, text: String) -> some View {
+        Label(text, systemImage: icon)
+            .labelStyle(.titleAndIcon)
     }
 
     @ToolbarContentBuilder
@@ -124,59 +145,77 @@ struct ContentView: View {
             .pickerStyle(.segmented)
             .help("Switch between List, Tree, and Network views")
 
-            Divider()
-
-            Button { processManager.refresh(); systemMonitor.refresh() } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
+            ControlGroup {
+                Button { processManager.refresh(); systemMonitor.refresh() } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .keyboardShortcut("r")
+                .help("Refresh process list (⌘R)")
             }
-            .keyboardShortcut("r")
-            .help("Refresh process list (⌘R)")
 
-            Divider()
-
-            Button {
-                if let pid = selectedPID {
-                    if selectedProcess?.status == .stopped {
-                        _ = processManager.resumeProcess(pid)
-                    } else {
-                        _ = processManager.suspendProcess(pid)
+            ControlGroup {
+                Button {
+                    if let pid = selectedPID {
+                        if selectedProcess?.status == .stopped {
+                            _ = processManager.resumeProcess(pid)
+                        } else {
+                            _ = processManager.suspendProcess(pid)
+                        }
                     }
+                } label: {
+                    Label(
+                        selectedProcess?.status == .stopped ? "Resume" : "Suspend",
+                        systemImage: selectedProcess?.status == .stopped ? "play.circle" : "pause.circle"
+                    )
+                }
+                .disabled(selectedPID == nil)
+                .help(selectedProcess?.status == .stopped ? "Resume process (SIGCONT)" : "Suspend process (SIGSTOP)")
+
+                Button { forceKill = false; showKillAlert = true } label: {
+                    Label("Terminate", systemImage: "xmark.circle")
+                }
+                .disabled(selectedPID == nil)
+                .help("Terminate process (SIGTERM)")
+
+                Button { forceKill = true; showKillAlert = true } label: {
+                    Label("Force Kill", systemImage: "bolt.circle.fill")
+                }
+                .disabled(selectedPID == nil)
+                .help("Force kill process (SIGKILL)")
+            }
+
+            ControlGroup {
+                Button { exportToCSV() } label: {
+                    Label("Export CSV", systemImage: "square.and.arrow.up")
+                }
+                .keyboardShortcut("e")
+                .help("Export process list to CSV (⌘E)")
+            }
+
+            Menu {
+                Text("Table Columns")
+                Divider()
+                ForEach(ProcessColumn.allCases) { col in
+                    Toggle(col.displayName, isOn: Binding(
+                        get: { columnSettings.isVisible(col) },
+                        set: { _ in columnSettings.toggle(col) }
+                    ))
+                }
+                Divider()
+                Button("Reset to Defaults") {
+                    columnSettings.resetDefaults()
                 }
             } label: {
-                Label(
-                    selectedProcess?.status == .stopped ? "Resume" : "Suspend",
-                    systemImage: selectedProcess?.status == .stopped ? "play.circle" : "pause.circle"
-                )
+                Label("Columns", systemImage: "tablecells.badge.ellipsis")
             }
-            .disabled(selectedPID == nil)
-            .help(selectedProcess?.status == .stopped ? "Resume process (SIGCONT)" : "Suspend process (SIGSTOP)")
+            .help("Customize visible columns")
 
-            Button { forceKill = false; showKillAlert = true } label: {
-                Label("Terminate", systemImage: "xmark.circle")
+            ControlGroup {
+                Toggle(isOn: $showInspector) {
+                    Label("Inspector", systemImage: "sidebar.trailing")
+                }
+                .help("Show/hide process inspector panel")
             }
-            .disabled(selectedPID == nil)
-            .help("Terminate process (SIGTERM)")
-
-            Button { forceKill = true; showKillAlert = true } label: {
-                Label("Force Kill", systemImage: "bolt.circle.fill")
-            }
-            .disabled(selectedPID == nil)
-            .help("Force kill process (SIGKILL)")
-
-            Divider()
-
-            Button { exportToCSV() } label: {
-                Label("Export CSV", systemImage: "square.and.arrow.up")
-            }
-            .keyboardShortcut("e")
-            .help("Export process list to CSV (⌘E)")
-
-            Divider()
-
-            Toggle(isOn: $showInspector) {
-                Label("Inspector", systemImage: "sidebar.trailing")
-            }
-            .help("Show/hide process inspector panel")
         }
     }
 
@@ -193,10 +232,14 @@ struct ContentView: View {
     }
 
     private func matches(_ p: ProcessItem, _ query: String) -> Bool {
-        p.name.localizedCaseInsensitiveContains(query)
+        let cleanQuery = query.hasPrefix(":") ? String(query.dropFirst()) : query
+        return p.name.localizedCaseInsensitiveContains(query)
             || String(p.pid).contains(query)
             || p.user.localizedCaseInsensitiveContains(query)
             || p.path.localizedCaseInsensitiveContains(query)
+            || p.ports.contains { $0.contains(cleanQuery) }
+            || p.archShortName.localizedCaseInsensitiveContains(query)
+            || p.signatureBadgeText.localizedCaseInsensitiveContains(query)
     }
 
     private func exportToCSV() {

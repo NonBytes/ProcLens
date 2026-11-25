@@ -53,6 +53,11 @@ struct ProcessItem: Identifiable, Hashable {
     var networkCounters: NetworkCounters? = nil
     var networkBytesReceived: UInt64 { networkCounters?.received ?? 0 }
     var networkBytesSent: UInt64 { networkCounters?.sent ?? 0 }
+    var architecture: ProcessArchitecture = .unavailable
+    var startTime: Date? = nil
+    var ports: [String] = []
+    var signatureStatus: SignatureStatus = .unavailable
+    var signatureAuthority: String? = nil
 
     var memoryMB: Double {
         Double(memoryUsage) / 1_048_576.0
@@ -71,6 +76,73 @@ struct ProcessItem: Identifiable, Hashable {
 
     var formattedDiskRead: String { Self.formatBytes(diskReadBytes) }
     var formattedDiskWrite: String { Self.formatBytes(diskWriteBytes) }
+
+    var formattedPorts: String {
+        ports.isEmpty ? "—" : ports.joined(separator: ", ")
+    }
+
+    var portsSortKey: Int {
+        Int(ports.first ?? "0") ?? 0
+    }
+
+    var uptimeSeconds: TimeInterval {
+        guard let startTime else { return 0 }
+        return max(0, Date().timeIntervalSince(startTime))
+    }
+
+    var formattedUptime: String {
+        guard startTime != nil else { return "—" }
+        let sec = Int(uptimeSeconds)
+        if sec < 60 {
+            return "\(sec)s"
+        } else if sec < 3600 {
+            return "\(sec / 60)m \(sec % 60)s"
+        } else if sec < 86400 {
+            return "\(sec / 3600)h \((sec % 3600) / 60)m"
+        } else {
+            return "\(sec / 86400)d \((sec % 86400) / 3600)h"
+        }
+    }
+
+    var archShortName: String {
+        switch architecture {
+        case .native: "arm64"
+        case .rosetta: "x86_64"
+        case .unavailable: "—"
+        }
+    }
+
+    var archBadgeColor: Color {
+        switch architecture {
+        case .native: .purple
+        case .rosetta: .orange
+        case .unavailable: .secondary
+        }
+    }
+
+    var signatureBadgeText: String {
+        if let auth = signatureAuthority {
+            if auth.contains("Apple") { return "Apple" }
+            if auth.contains("Developer ID") { return "Developer" }
+        }
+        switch signatureStatus {
+        case .valid: return "Valid"
+        case .adHoc: return "Ad-hoc"
+        case .unsigned: return "Unsigned"
+        case .invalid: return "Invalid"
+        case .unavailable: return "—"
+        }
+    }
+
+    var signatureBadgeColor: Color {
+        switch signatureStatus {
+        case .valid: return .blue
+        case .adHoc: return .teal
+        case .unsigned: return .red
+        case .invalid: return .red
+        case .unavailable: return .secondary
+        }
+    }
 
     var formattedNice: String {
         niceValue == 0 ? "Normal (0)" : "\(niceValue)"

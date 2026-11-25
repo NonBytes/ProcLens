@@ -15,21 +15,45 @@ struct SubprocessWindow: View {
         let processes = processManager.processes
         let parentIsRunning = processes.contains { $0.pid == parent.pid }
         let hasChildren = processes.contains { $0.parentPid == parent.pid }
+        let childCount = processes.filter { $0.parentPid == parent.pid }.count
 
         VStack(spacing: 0) {
-            HStack {
-                Text("\(parent.name) (PID \(parent.pid))")
-                    .font(.headline)
+            HStack(spacing: 12) {
+                if let parentProcess = processes.first(where: { $0.pid == parent.pid }) {
+                    Image(nsImage: IconProvider.shared.appIcon(for: parentProcess))
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 28, height: 28)
+                        .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
+                } else {
+                    Image(systemName: "arrow.triangle.branch")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(parent.name)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Text("PID \(parent.pid)" + (childCount > 0 ? "  ·  \(childCount) direct \(childCount == 1 ? "child" : "children")" : ""))
+                        .font(.caption)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
                 Button("Done") { dismiss() }
                     .keyboardShortcut(.defaultAction)
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
             Divider()
             if !parentIsRunning || !hasChildren {
                 ContentUnavailableView(
                     parentIsRunning ? "No Subprocesses" : "Process Ended",
-                    systemImage: "arrow.triangle.branch"
+                    systemImage: parentIsRunning ? "arrow.triangle.branch" : "power",
+                    description: Text(parentIsRunning
+                        ? "\(parent.name) currently has no child processes."
+                        : "PID \(parent.pid) is no longer running.")
                 )
                 .frame(maxHeight: .infinity)
             } else {
@@ -49,78 +73,20 @@ struct ProcessTreeView: View {
     var parentPID: Int32? = nil
     @Binding var selectedPID: Int32?
     var showSubprocesses: ((ProcessItem) -> Void)? = nil
-    @State private var columnWidths: [CGFloat] = [55, 200, 110, 85, 90, 80, 85, 75, 75]
-    @State private var resizeStart: CGFloat?
-    @State private var isLaunchdExpanded = true
-    @State private var sortOrder = KeyPathComparator(\ProcessItem.cpuUsage, order: .reverse)
+    @State private var columnSettings = ColumnSettings.shared
+    @State private var sortOrder = [KeyPathComparator(\ProcessTreeNode.process.cpuUsage, order: .reverse)]
     @Environment(ProcessManager.self) private var processManager
 
-    var body: some View {
-        GeometryReader { geometry in
-            ScrollView(.horizontal) {
-                VStack(spacing: 0) {
-                    HStack(spacing: 6) {
-                        sortButton("PID", by: KeyPathComparator(\ProcessItem.pid))
-                            .frame(minWidth: columnWidths[0], maxWidth: columnWidths[0], alignment: .leading)
-                            .overlay(alignment: .trailing) { resizeHandle(0) }
-                        sortButton("Name", by: KeyPathComparator(\ProcessItem.name, comparator: .localizedStandard))
-                            .frame(minWidth: columnWidths[1], maxWidth: columnWidths[1], alignment: .leading)
-                            .overlay(alignment: .trailing) { resizeHandle(1) }
-                        sortButton("CPU %", by: KeyPathComparator(\ProcessItem.cpuUsage, order: .reverse))
-                            .frame(minWidth: columnWidths[2], maxWidth: columnWidths[2], alignment: .trailing)
-                            .overlay(alignment: .trailing) { resizeHandle(2) }
-                        sortButton("Memory", by: KeyPathComparator(\ProcessItem.memoryUsage, order: .reverse))
-                            .frame(minWidth: columnWidths[3], maxWidth: columnWidths[3], alignment: .trailing)
-                            .overlay(alignment: .trailing) { resizeHandle(3) }
-                        sortButton("Received", by: KeyPathComparator(\ProcessItem.networkBytesReceived, order: .reverse))
-                            .frame(minWidth: columnWidths[4], maxWidth: columnWidths[4], alignment: .trailing)
-                            .overlay(alignment: .trailing) { resizeHandle(4) }
-                        sortButton("Sent", by: KeyPathComparator(\ProcessItem.networkBytesSent, order: .reverse))
-                            .frame(minWidth: columnWidths[5], maxWidth: columnWidths[5], alignment: .trailing)
-                            .overlay(alignment: .trailing) { resizeHandle(5) }
-                        sortButton("User", by: KeyPathComparator(\ProcessItem.user, comparator: .localizedStandard))
-                            .frame(minWidth: columnWidths[6], maxWidth: columnWidths[6], alignment: .trailing)
-                            .overlay(alignment: .trailing) { resizeHandle(6) }
-                        sortButton("Threads", by: KeyPathComparator(\ProcessItem.threadCount, order: .reverse))
-                            .frame(minWidth: columnWidths[7], maxWidth: columnWidths[7], alignment: .trailing)
-                            .overlay(alignment: .trailing) { resizeHandle(7) }
-                        sortButton("Status", by: KeyPathComparator(\ProcessItem.status))
-                            .frame(minWidth: columnWidths[8], maxWidth: columnWidths[8], alignment: .trailing)
-                            .overlay(alignment: .trailing) { resizeHandle(8) }
-                        Spacer(minLength: 0)
-                    }
-                    .font(.caption)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 6)
-                    Divider()
-                    processList
-                }
-                .frame(width: max(geometry.size.width, columnWidths.reduce(0, +) + 100), height: geometry.size.height)
-            }
-        }
+    private var rootNodes: [ProcessTreeNode] {
+        ProcessTreeNode.buildForest(from: processes, under: parentPID, sortedBy: sortOrder)
     }
 
-    private var processList: some View {
-        let rootNodes = ProcessTreeNode.buildForest(from: processes, under: parentPID, sortedBy: sortOrder)
-        return List(selection: $selectedPID) {
-            ForEach(rootNodes) { node in
-                if node.id == 1, node.process.name == "launchd", let children = node.children {
-                    DisclosureGroup(isExpanded: $isLaunchdExpanded) {
-                        OutlineGroup(children, children: \.children) { child in
-                            processRow(child).tag(child.id)
-                        }
-                    } label: {
-                        processRow(node)
-                    }
-                    .tag(node.id)
-                } else {
-                    OutlineGroup(node, children: \.children) { descendant in
-                        processRow(descendant).tag(descendant.id)
-                    }
-                }
-            }
+    var body: some View {
+        Table(rootNodes, children: \.children, selection: $selectedPID, sortOrder: $sortOrder) {
+            primaryColumns
+            secondaryColumns
         }
-        .listStyle(.inset(alternatesRowBackgrounds: true))
+        .tableStyle(.inset(alternatesRowBackgrounds: true))
         .contextMenu(forSelectionType: Int32.self) { pids in
             if let pid = pids.first,
                let process = processManager.processes.first(where: { $0.pid == pid }) {
@@ -134,110 +100,213 @@ struct ProcessTreeView: View {
         }
     }
 
-    private func resizeHandle(_ column: Int) -> some View {
-        Rectangle()
-            .fill(Color.secondary.opacity(0.35))
-            .frame(width: 1, height: 18)
-            .frame(width: 10)
-            .contentShape(Rectangle())
-            .offset(x: 5)
-            .gesture(
-                DragGesture(minimumDistance: 1)
-                    .onChanged { value in
-                        let initial = resizeStart ?? columnWidths[column]
-                        resizeStart = initial
-                        columnWidths[column] = max(column == 1 ? 120 : 55, initial + value.translation.width)
+    @TableColumnBuilder<ProcessTreeNode, KeyPathComparator<ProcessTreeNode>>
+    private var primaryColumns: some TableColumnContent<ProcessTreeNode, KeyPathComparator<ProcessTreeNode>> {
+        let cols = columnSettings.visibleColumns
+        if cols.count > 0 { column(for: cols[0]) }
+        if cols.count > 1 { column(for: cols[1]) }
+        if cols.count > 2 { column(for: cols[2]) }
+        if cols.count > 3 { column(for: cols[3]) }
+        if cols.count > 4 { column(for: cols[4]) }
+        if cols.count > 5 { column(for: cols[5]) }
+        if cols.count > 6 { column(for: cols[6]) }
+        if cols.count > 7 { column(for: cols[7]) }
+    }
+
+    @TableColumnBuilder<ProcessTreeNode, KeyPathComparator<ProcessTreeNode>>
+    private var secondaryColumns: some TableColumnContent<ProcessTreeNode, KeyPathComparator<ProcessTreeNode>> {
+        let cols = columnSettings.visibleColumns
+        if cols.count > 8 { column(for: cols[8]) }
+        if cols.count > 9 { column(for: cols[9]) }
+        if cols.count > 10 { column(for: cols[10]) }
+        if cols.count > 11 { column(for: cols[11]) }
+        if cols.count > 12 { column(for: cols[12]) }
+        if cols.count > 13 { column(for: cols[13]) }
+        if cols.count > 14 { column(for: cols[14]) }
+        if cols.count > 15 { column(for: cols[15]) }
+    }
+
+    private func column(for col: ProcessColumn) -> TableColumn<ProcessTreeNode, KeyPathComparator<ProcessTreeNode>, AnyView, Text> {
+        switch col {
+        case .pid:
+            TableColumn("PID", value: \.process.pid) { node in
+                AnyView(
+                    Text("\(node.process.pid)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: ProcessColumn.pid.minWidth, ideal: ProcessColumn.pid.defaultWidth, max: 80)
+        case .name:
+            TableColumn("Name", value: \.process.name) { node in
+                AnyView(
+                    HStack(spacing: 6) {
+                        Image(nsImage: IconProvider.shared.appIcon(for: node.process))
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 16, height: 16)
+                        Text(node.process.name)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
                     }
-                    .onEnded { _ in resizeStart = nil }
-            )
-            .help("Drag to resize column")
-            .accessibilityLabel("Resize column")
-    }
-
-    private func sortButton(_ title: String, by comparator: KeyPathComparator<ProcessItem>) -> some View {
-        let isActive = sortOrder.keyPath == comparator.keyPath
-        return Button {
-            if isActive {
-                sortOrder.order = sortOrder.order == .forward ? .reverse : .forward
-            } else {
-                sortOrder = comparator
+                )
             }
-        } label: {
-            HStack(spacing: 4) {
-                Text(title)
-                if isActive {
-                    Image(systemName: sortOrder.order == .forward ? "chevron.up" : "chevron.down")
-                }
+            .width(min: ProcessColumn.name.minWidth, ideal: ProcessColumn.name.defaultWidth)
+        case .cpu:
+            TableColumn("CPU %", value: \.process.cpuUsage) { node in
+                AnyView(
+                    HStack(spacing: 6) {
+                        if processManager.historyTracker.hasMeaningfulCPU(for: node.process.pid) {
+                            SparklineView(
+                                values: processManager.historyTracker.cpuHistory(for: node.process.pid),
+                                color: cpuColor(node.process.cpuUsage)
+                            )
+                            .frame(width: 40, height: 14)
+                        }
+                        Text(node.process.formattedCPU)
+                            .monospacedDigit()
+                            .fontWeight(.medium)
+                            .foregroundStyle(cpuColor(node.process.cpuUsage))
+                    }
+                )
             }
+            .width(min: ProcessColumn.cpu.minWidth, ideal: ProcessColumn.cpu.defaultWidth, max: 160)
+        case .memory:
+            TableColumn("Memory", value: \.process.memoryUsage) { node in
+                AnyView(
+                    Text(node.process.formattedMemory)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: ProcessColumn.memory.minWidth, ideal: ProcessColumn.memory.defaultWidth, max: 110)
+        case .ports:
+            TableColumn("Ports", value: \.process.portsSortKey) { node in
+                AnyView(
+                    Group {
+                        if node.process.ports.isEmpty {
+                            Text("—").foregroundStyle(.tertiary)
+                        } else {
+                            Text(node.process.formattedPorts)
+                                .font(.system(.caption, design: .monospaced))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                                .foregroundStyle(.blue)
+                        }
+                    }
+                )
+            }
+            .width(min: ProcessColumn.ports.minWidth, ideal: ProcessColumn.ports.defaultWidth)
+        case .arch:
+            TableColumn("Arch", value: \.process.archShortName) { node in
+                AnyView(
+                    Group {
+                        if node.process.architecture == .unavailable {
+                            Text("—").foregroundStyle(.tertiary)
+                        } else {
+                            Text(node.process.archShortName)
+                                .font(.system(.caption2, design: .monospaced).weight(.semibold))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(node.process.archBadgeColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                                .foregroundStyle(node.process.archBadgeColor)
+                        }
+                    }
+                )
+            }
+            .width(min: ProcessColumn.arch.minWidth, ideal: ProcessColumn.arch.defaultWidth)
+        case .diskRead:
+            TableColumn("Disk Read", value: \.process.diskReadBytes) { node in
+                AnyView(
+                    Text(node.process.formattedDiskRead)
+                        .monospacedDigit()
+                        .foregroundStyle(node.process.diskReadBytes == 0 ? .tertiary : .secondary)
+                )
+            }
+            .width(min: ProcessColumn.diskRead.minWidth, ideal: ProcessColumn.diskRead.defaultWidth)
+        case .diskWrite:
+            TableColumn("Disk Write", value: \.process.diskWriteBytes) { node in
+                AnyView(
+                    Text(node.process.formattedDiskWrite)
+                        .monospacedDigit()
+                        .foregroundStyle(node.process.diskWriteBytes == 0 ? .tertiary : .secondary)
+                )
+            }
+            .width(min: ProcessColumn.diskWrite.minWidth, ideal: ProcessColumn.diskWrite.defaultWidth)
+        case .uptime:
+            TableColumn("Uptime", value: \.process.uptimeSeconds) { node in
+                AnyView(
+                    Text(node.process.formattedUptime)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: ProcessColumn.uptime.minWidth, ideal: ProcessColumn.uptime.defaultWidth)
+        case .received:
+            TableColumn("Received", value: \.process.networkBytesReceived) { node in
+                AnyView(
+                    Text(node.process.networkCounters.map { NetworkCounters.formatBytes($0.received) } ?? "—")
+                        .monospacedDigit()
+                        .foregroundStyle(node.process.networkCounters == nil ? .tertiary : .secondary)
+                )
+            }
+            .width(min: ProcessColumn.received.minWidth, ideal: ProcessColumn.received.defaultWidth)
+        case .sent:
+            TableColumn("Sent", value: \.process.networkBytesSent) { node in
+                AnyView(
+                    Text(node.process.networkCounters.map { NetworkCounters.formatBytes($0.sent) } ?? "—")
+                        .monospacedDigit()
+                        .foregroundStyle(node.process.networkCounters == nil ? .tertiary : .secondary)
+                )
+            }
+            .width(min: ProcessColumn.sent.minWidth, ideal: ProcessColumn.sent.defaultWidth)
+        case .user:
+            TableColumn("User", value: \.process.user) { node in
+                AnyView(
+                    Text(node.process.user)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .help(node.process.user)
+                )
+            }
+            .width(min: ProcessColumn.user.minWidth, ideal: ProcessColumn.user.defaultWidth, max: 120)
+        case .threads:
+            TableColumn("Threads", value: \.process.threadCount) { node in
+                AnyView(
+                    Text("\(node.process.threadCount)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: ProcessColumn.threads.minWidth, ideal: ProcessColumn.threads.defaultWidth, max: 80)
+        case .status:
+            TableColumn("Status", value: \.process.status) { node in
+                AnyView(StatusBadge(status: node.process.status))
+            }
+            .width(min: ProcessColumn.status.minWidth, ideal: ProcessColumn.status.defaultWidth, max: 100)
+        case .signature:
+            TableColumn("Signature", value: \.process.signatureBadgeText) { node in
+                AnyView(
+                    Text(node.process.signatureBadgeText)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(node.process.signatureBadgeColor)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(node.process.signatureBadgeColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                )
+            }
+            .width(min: ProcessColumn.signature.minWidth, ideal: ProcessColumn.signature.defaultWidth)
+        case .ppid:
+            TableColumn("PPID", value: \.process.parentPid) { node in
+                AnyView(
+                    Text("\(node.process.parentPid)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: ProcessColumn.ppid.minWidth, ideal: ProcessColumn.ppid.defaultWidth)
         }
-        .buttonStyle(.plain)
-        .help("Sort by \(title)")
-        .accessibilityValue(isActive ? (sortOrder.order == .forward ? "Ascending" : "Descending") : "")
-    }
-
-    private func processRow(_ node: ProcessTreeNode) -> some View {
-        HStack(spacing: 6) {
-            Text("\(node.process.pid)")
-                .monospacedDigit()
-                .foregroundStyle(.tertiary)
-                .frame(width: columnWidths[0], alignment: .leading)
-
-            HStack(spacing: 6) {
-                Image(nsImage: IconProvider.shared.appIcon(for: node.process))
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 16, height: 16)
-                Text(node.process.name).lineLimit(1)
-                Spacer(minLength: 0)
-            }
-            .frame(minWidth: columnWidths[1], maxWidth: columnWidths[1], alignment: .leading)
-
-            HStack(spacing: 4) {
-                if processManager.historyTracker.hasMeaningfulCPU(for: node.process.pid) {
-                    SparklineView(
-                        values: processManager.historyTracker.cpuHistory(for: node.process.pid),
-                        color: cpuColor(node.process.cpuUsage)
-                    )
-                    .frame(width: 40, height: 14)
-                }
-                Text(node.process.formattedCPU)
-                    .monospacedDigit()
-                    .foregroundStyle(cpuColor(node.process.cpuUsage))
-            }
-            .frame(width: columnWidths[2], alignment: .trailing)
-
-            Text(node.process.formattedMemory)
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .frame(width: columnWidths[3], alignment: .trailing)
-
-            Text(node.process.networkCounters.map { NetworkCounters.formatBytes($0.received) } ?? "—")
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .frame(width: columnWidths[4], alignment: .trailing)
-
-            Text(node.process.networkCounters.map { NetworkCounters.formatBytes($0.sent) } ?? "—")
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .frame(width: columnWidths[5], alignment: .trailing)
-
-            Text(node.process.user)
-                .lineLimit(1)
-                .help(node.process.user)
-                .frame(width: columnWidths[6], alignment: .trailing)
-
-            Text("\(node.process.threadCount)")
-                .monospacedDigit()
-                .frame(width: columnWidths[7], alignment: .trailing)
-
-            Text(node.process.status.displayName)
-                .font(.caption)
-                .foregroundStyle(node.process.status.color)
-                .lineLimit(1)
-                .frame(width: columnWidths[8], alignment: .trailing)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .font(.callout)
     }
 
     private func cpuColor(_ usage: Double) -> Color {

@@ -16,6 +16,10 @@ final class ProcessManager {
     @ObservationIgnored private var nameCache: [Int32: String] = [:]
     @ObservationIgnored private var pathCache: [Int32: String] = [:]
     @ObservationIgnored private var userCache: [uid_t: String] = [:]
+    @ObservationIgnored private var archCache: [Int32: ProcessArchitecture] = [:]
+    @ObservationIgnored private var signatureCache: [String: (status: SignatureStatus, authority: String?)] = [:]
+    @ObservationIgnored private var portMap: [Int32: [String]] = [:]
+    @ObservationIgnored private var lastPortSampleTime: CFAbsoluteTime = 0
 
     func startMonitoring() {
         refresh()
@@ -30,6 +34,7 @@ final class ProcessManager {
     func refresh() {
         guard !isRefreshing else { return }
         isRefreshing = true
+        samplePortsIfNeeded()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
             let newProcesses = self.fetchProcesses()
@@ -106,8 +111,50 @@ final class ProcessManager {
         for pid in nameCache.keys where !alivePids.contains(pid) {
             nameCache.removeValue(forKey: pid)
             pathCache.removeValue(forKey: pid)
+            archCache.removeValue(forKey: pid)
         }
         return result
+    }
+
+    private func samplePortsIfNeeded() {
+        let now = CFAbsoluteTimeGetCurrent()
+        guard now - lastPortSampleTime >= 2.0 else { return }
+        lastPortSampleTime = now
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            let map = Self.fetchListeningPorts()
+            DispatchQueue.main.async {
+                self?.portMap = map
+            }
+        }
+    }
+
+    private static func fetchListeningPorts() -> [Int32: [String]] {
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/sbin/lsof")
+        task.arguments = ["-nP", "-iTCP", "-sTCP:LISTEN", "-iUDP"]
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        try? task.run()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        task.waitUntilExit()
+        guard let output = String(data: data, encoding: .utf8) else { return [:] }
+        var map: [Int32: Set<String>] = [:]
+        for line in output.components(separatedBy: "\n").dropFirst() {
+            let cols = line.split(separator: " ", maxSplits: 9, omittingEmptySubsequences: true)
+            guard cols.count >= 9 else { continue }
+            guard let pid = Int32(cols[1]) else { continue }
+            let name = String(cols[8])
+            let addrPart = name.components(separatedBy: "->").first ?? name
+            if let colonIdx = addrPart.lastIndex(of: ":") {
+                let portStr = String(addrPart[addrPart.index(after: colonIdx)...])
+                if !portStr.isEmpty && portStr != "*" {
+                    map[pid, default: []].insert(portStr)
+                }
+            }
+        }
+        return map.mapValues { ports in
+            ports.sorted { (Int($0) ?? 0) < (Int($1) ?? 0) }
+        }
     }
 
     private func buildProcessItem(
@@ -151,13 +198,40 @@ final class ProcessManager {
         }
 
         let uid = kinfo.kp_eproc.e_ucred.cr_uid
-        let userName: String
+        var userName: String
         if let cached = userCache[uid] { userName = cached }
         else if let pw = getpwuid(uid) { userName = String(cString: pw.pointee.pw_name); userCache[uid] = userName }
         else { userName = "\(uid)"; userCache[uid] = userName }
 
+        if getenv("PROCLENS_MASK_USERNAME") != nil {
+            userName = userName.replacingOccurrences(of: "nonbytes", with: "developer", options: .caseInsensitive)
+        }
+
         let status = ProcessStatus(rawValue: kinfo.kp_proc.p_stat) ?? .unknown
         let diskIO = fetchDiskIO(pid: pid)
+
+        let arch: ProcessArchitecture
+        if let cached = archCache[pid] { arch = cached }
+        else { arch = ProcessDetails.fetchArchitecture(pid: pid); archCache[pid] = arch }
+
+        let startSec = kinfo.kp_proc.p_starttime.tv_sec
+        let startTime = startSec > 0 ? Date(timeIntervalSince1970: TimeInterval(startSec)) : nil
+
+        let ports = portMap[pid] ?? []
+
+        var sigStatus = SignatureStatus.unavailable
+        var sigAuth: String? = nil
+        if !path.isEmpty {
+            if let cached = signatureCache[path] {
+                sigStatus = cached.status
+                sigAuth = cached.authority
+            } else {
+                let cs = ProcessDetails.fetchCodeSigningInfo(pid: pid, executablePath: path)
+                sigStatus = cs.status
+                sigAuth = cs.authority
+                signatureCache[path] = (cs.status, cs.authority)
+            }
+        }
 
         return ProcessItem(
             pid: pid, name: name, user: userName, cpuUsage: cpuUsage,
@@ -166,7 +240,9 @@ final class ProcessManager {
             threadCount: hasTaskInfo ? taskInfo.pti_threadnum : 0,
             status: status, path: path, parentPid: kinfo.kp_eproc.e_ppid,
             niceValue: Int32(kinfo.kp_proc.p_nice),
-            diskReadBytes: diskIO.read, diskWriteBytes: diskIO.write
+            diskReadBytes: diskIO.read, diskWriteBytes: diskIO.write,
+            architecture: arch, startTime: startTime, ports: ports,
+            signatureStatus: sigStatus, signatureAuthority: sigAuth
         )
     }
 
@@ -178,14 +254,20 @@ final class ProcessManager {
     private func fetchProcessName(pid: Int32, kinfo: kinfo_proc) -> String {
         var nameBuffer = [CChar](repeating: 0, count: 1024)
         let nameLen = proc_name(pid, &nameBuffer, UInt32(nameBuffer.count))
+        var name: String
         if nameLen > 0 {
-            return String(cString: nameBuffer)
+            name = String(cString: nameBuffer)
+        } else {
+            var comm = kinfo.kp_proc.p_comm
+            name = withUnsafeBytes(of: &comm) { buf in
+                guard let base = buf.baseAddress else { return "?" }
+                return String(cString: base.assumingMemoryBound(to: CChar.self))
+            }
         }
-        var comm = kinfo.kp_proc.p_comm
-        return withUnsafeBytes(of: &comm) { buf in
-            guard let base = buf.baseAddress else { return "?" }
-            return String(cString: base.assumingMemoryBound(to: CChar.self))
+        if getenv("PROCLENS_MASK_USERNAME") != nil {
+            name = name.replacingOccurrences(of: "nonbytes", with: "developer", options: .caseInsensitive)
         }
+        return name
     }
 
     private func fetchProcessPath(pid: Int32) -> String {
@@ -193,6 +275,10 @@ final class ProcessManager {
         var pathBuffer = [CChar](repeating: 0, count: maxSize)
         let pathLen = proc_pidpath(pid, &pathBuffer, UInt32(maxSize))
         guard pathLen > 0 else { return "" }
-        return String(cString: pathBuffer)
+        var path = String(cString: pathBuffer)
+        if getenv("PROCLENS_MASK_USERNAME") != nil {
+            path = path.replacingOccurrences(of: "nonbytes", with: "developer", options: .caseInsensitive)
+        }
+        return path
     }
 }

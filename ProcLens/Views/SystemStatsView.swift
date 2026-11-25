@@ -9,14 +9,14 @@ struct SystemStatsView: View {
             StatGauge(
                 title: "CPU",
                 value: systemMonitor.stats.cpuUsage,
-                detail: String(format: "User %.0f%%  Sys %.0f%%",
+                detail: String(format: "User %.0f%%  ·  Sys %.0f%%",
                                systemMonitor.stats.userCPU,
                                systemMonitor.stats.systemCPU),
                 color: gaugeColor(systemMonitor.stats.cpuUsage)
             )
 
             Divider()
-                .frame(height: 36)
+                .frame(height: 38)
 
             StatGauge(
                 title: "Memory",
@@ -28,19 +28,21 @@ struct SystemStatsView: View {
             )
 
             Divider()
-                .frame(height: 36)
+                .frame(height: 38)
 
             memoryBreakdown
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 2) {
+            VStack(alignment: .trailing, spacing: 1) {
                 Text("\(processManager.processes.count)")
-                    .font(.title2)
+                    .font(.system(.title3, design: .rounded))
                     .fontWeight(.bold)
                     .monospacedDigit()
-                Text("Processes")
-                    .font(.caption2)
+                    .contentTransition(.numericText())
+                Text("PROCESSES")
+                    .font(.system(size: 9, weight: .semibold))
+                    .tracking(0.8)
                     .foregroundStyle(.secondary)
             }
         }
@@ -50,12 +52,10 @@ struct SystemStatsView: View {
     }
 
     private var memoryBreakdown: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 12) {
-                MemoryChip(label: "Active", gb: systemMonitor.stats.usedMemoryGB, color: .blue)
-                MemoryChip(label: "Wired", gb: systemMonitor.stats.wiredMemoryGB, color: .orange)
-                MemoryChip(label: "Compressed", gb: systemMonitor.stats.compressedMemoryGB, color: .purple)
-            }
+        HStack(spacing: 8) {
+            MemoryChip(label: "Active", gb: systemMonitor.stats.usedMemoryGB, color: .blue)
+            MemoryChip(label: "Wired", gb: systemMonitor.stats.wiredMemoryGB, color: .orange)
+            MemoryChip(label: "Compressed", gb: systemMonitor.stats.compressedMemoryGB, color: .purple)
         }
     }
 
@@ -75,26 +75,39 @@ struct StatGauge: View {
     let color: Color
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .stroke(color.opacity(0.2), lineWidth: 4)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 5)
                 Circle()
                     .trim(from: 0, to: min(max(value, 0), 100) / 100)
-                    .stroke(color, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .stroke(
+                        AngularGradient(
+                            colors: [color.opacity(0.55), color],
+                            center: .center,
+                            startAngle: .degrees(0),
+                            endAngle: .degrees(360 * min(max(value, 0), 100) / 100)
+                        ),
+                        style: StrokeStyle(lineWidth: 5, lineCap: .round)
+                    )
                     .rotationEffect(.degrees(-90))
-                Text(String(format: "%.0f%%", value))
-                    .font(.system(.caption2, design: .monospaced))
+                    .animation(.smooth(duration: 0.6), value: value)
+                Text(String(format: "%.0f", value))
+                    .font(.system(.caption, design: .rounded))
                     .fontWeight(.bold)
+                    .monospacedDigit()
+                    .foregroundStyle(color)
+                    .contentTransition(.numericText())
             }
-            .frame(width: 42, height: 42)
+            .frame(width: 46, height: 46)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.caption)
+                    .font(.system(.caption, design: .rounded))
                     .fontWeight(.semibold)
                 Text(detail)
                     .font(.caption2)
+                    .monospacedDigit()
                     .foregroundStyle(.secondary)
             }
         }
@@ -109,13 +122,20 @@ struct MemoryChip: View {
     let color: Color
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             Circle()
                 .fill(color)
                 .frame(width: 6, height: 6)
-            Text("\(label): \(String(format: "%.1f", gb))G")
-                .font(.caption2)
+            Text(label)
                 .foregroundStyle(.secondary)
+            Text(String(format: "%.1fG", gb))
+                .fontWeight(.medium)
+                .foregroundStyle(.primary)
         }
+        .font(.caption2)
+        .monospacedDigit()
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.primary.opacity(0.05), in: Capsule())
     }
 }

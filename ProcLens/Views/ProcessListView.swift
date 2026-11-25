@@ -8,84 +8,241 @@ struct ProcessListView: View {
     let networkActivity: NetworkActivity
     let showSubprocesses: (ProcessItem) -> Void
 
+    @State private var columnSettings = ColumnSettings.shared
+
     private var displayProcesses: [ProcessItem] {
-        let base = searchText.isEmpty
-            ? processManager.processes
-            : processManager.processes.filter { p in
-                p.name.localizedCaseInsensitiveContains(searchText)
-                    || String(p.pid).contains(searchText)
-                    || p.user.localizedCaseInsensitiveContains(searchText)
-                    || p.path.localizedCaseInsensitiveContains(searchText)
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let base: [ProcessItem]
+        if query.isEmpty {
+            base = processManager.processes
+        } else {
+            let cleanQuery = query.hasPrefix(":") ? String(query.dropFirst()) : query
+            base = processManager.processes.filter { p in
+                p.name.localizedCaseInsensitiveContains(query)
+                    || String(p.pid).contains(query)
+                    || p.user.localizedCaseInsensitiveContains(query)
+                    || p.path.localizedCaseInsensitiveContains(query)
+                    || p.ports.contains { $0.contains(cleanQuery) }
+                    || p.archShortName.localizedCaseInsensitiveContains(query)
+                    || p.signatureBadgeText.localizedCaseInsensitiveContains(query)
             }
+        }
         return networkActivity.addingCounters(to: base).sorted(using: sortOrder)
+    }
+
+    @TableColumnBuilder<ProcessItem, KeyPathComparator<ProcessItem>>
+    private var primaryColumns: some TableColumnContent<ProcessItem, KeyPathComparator<ProcessItem>> {
+        let cols = columnSettings.visibleColumns
+        if cols.count > 0 { column(for: cols[0]) }
+        if cols.count > 1 { column(for: cols[1]) }
+        if cols.count > 2 { column(for: cols[2]) }
+        if cols.count > 3 { column(for: cols[3]) }
+        if cols.count > 4 { column(for: cols[4]) }
+        if cols.count > 5 { column(for: cols[5]) }
+        if cols.count > 6 { column(for: cols[6]) }
+        if cols.count > 7 { column(for: cols[7]) }
+    }
+
+    @TableColumnBuilder<ProcessItem, KeyPathComparator<ProcessItem>>
+    private var secondaryColumns: some TableColumnContent<ProcessItem, KeyPathComparator<ProcessItem>> {
+        let cols = columnSettings.visibleColumns
+        if cols.count > 8 { column(for: cols[8]) }
+        if cols.count > 9 { column(for: cols[9]) }
+        if cols.count > 10 { column(for: cols[10]) }
+        if cols.count > 11 { column(for: cols[11]) }
+        if cols.count > 12 { column(for: cols[12]) }
+        if cols.count > 13 { column(for: cols[13]) }
+        if cols.count > 14 { column(for: cols[14]) }
+        if cols.count > 15 { column(for: cols[15]) }
+    }
+
+    private func column(for col: ProcessColumn) -> TableColumn<ProcessItem, KeyPathComparator<ProcessItem>, AnyView, Text> {
+        switch col {
+        case .pid:
+            TableColumn("PID", value: \.pid) { p in
+                AnyView(
+                    Text("\(p.pid)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: 50, ideal: 65, max: 80)
+        case .name:
+            TableColumn("Name", value: \.name) { p in
+                AnyView(
+                    HStack(spacing: 6) {
+                        Image(nsImage: IconProvider.shared.appIcon(for: p))
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 16, height: 16)
+                            .help(iconTooltip(for: p))
+                        Text(p.name).fontWeight(.medium).lineLimit(1)
+                    }
+                )
+            }
+            .width(min: 120, ideal: 200)
+        case .cpu:
+            TableColumn("CPU %", value: \.cpuUsage) { p in
+                AnyView(
+                    HStack(spacing: 6) {
+                        if processManager.historyTracker.hasMeaningfulCPU(for: p.pid) {
+                            SparklineView(
+                                values: processManager.historyTracker.cpuHistory(for: p.pid),
+                                color: cpuColor(p.cpuUsage)
+                            )
+                            .frame(width: 40, height: 14)
+                        }
+                        Text(p.formattedCPU)
+                            .monospacedDigit()
+                            .fontWeight(.medium)
+                            .foregroundStyle(cpuColor(p.cpuUsage))
+                    }
+                )
+            }
+            .width(min: 100, ideal: 130, max: 160)
+        case .memory:
+            TableColumn("Memory", value: \.memoryUsage) { p in
+                AnyView(
+                    Text(p.formattedMemory)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: 70, ideal: 90, max: 110)
+        case .ports:
+            TableColumn("Ports", value: \.portsSortKey) { p in
+                AnyView(
+                    Group {
+                        if p.ports.isEmpty {
+                            Text("—")
+                                .foregroundStyle(.tertiary)
+                        } else {
+                            Text(p.formattedPorts)
+                                .font(.system(.caption, design: .monospaced))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                                .foregroundStyle(.blue)
+                                .help("Listening ports: \(p.formattedPorts)")
+                        }
+                    }
+                )
+            }
+            .width(min: 70, ideal: 95)
+        case .arch:
+            TableColumn("Arch", value: \.archShortName) { p in
+                AnyView(
+                    Group {
+                        if p.architecture == .unavailable {
+                            Text("—").foregroundStyle(.tertiary)
+                        } else {
+                            Text(p.archShortName)
+                                .font(.system(.caption2, design: .monospaced).weight(.semibold))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(p.archBadgeColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                                .foregroundStyle(p.archBadgeColor)
+                        }
+                    }
+                )
+            }
+            .width(min: 65, ideal: 75)
+        case .diskRead:
+            TableColumn("Disk Read", value: \.diskReadBytes) { p in
+                AnyView(
+                    Text(p.formattedDiskRead)
+                        .monospacedDigit()
+                        .foregroundStyle(p.diskReadBytes == 0 ? .tertiary : .secondary)
+                )
+            }
+            .width(min: 75, ideal: 85)
+        case .diskWrite:
+            TableColumn("Disk Write", value: \.diskWriteBytes) { p in
+                AnyView(
+                    Text(p.formattedDiskWrite)
+                        .monospacedDigit()
+                        .foregroundStyle(p.diskWriteBytes == 0 ? .tertiary : .secondary)
+                )
+            }
+            .width(min: 75, ideal: 85)
+        case .uptime:
+            TableColumn("Uptime", value: \.uptimeSeconds) { p in
+                AnyView(
+                    Text(p.formattedUptime)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: 65, ideal: 80)
+        case .received:
+            TableColumn("Received", value: \.networkBytesReceived) { process in
+                AnyView(
+                    Text(process.networkCounters.map { NetworkCounters.formatBytes($0.received) } ?? "—")
+                        .monospacedDigit()
+                        .foregroundStyle(process.networkCounters == nil ? .tertiary : .secondary)
+                )
+            }
+            .width(min: 75, ideal: 90)
+        case .sent:
+            TableColumn("Sent", value: \.networkBytesSent) { process in
+                AnyView(
+                    Text(process.networkCounters.map { NetworkCounters.formatBytes($0.sent) } ?? "—")
+                        .monospacedDigit()
+                        .foregroundStyle(process.networkCounters == nil ? .tertiary : .secondary)
+                )
+            }
+            .width(min: 65, ideal: 80)
+        case .user:
+            TableColumn("User", value: \.user) { p in
+                AnyView(
+                    Text(p.user)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                )
+            }
+            .width(min: 60, ideal: 80, max: 120)
+        case .threads:
+            TableColumn("Threads", value: \.threadCount) { p in
+                AnyView(
+                    Text("\(p.threadCount)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: 55, ideal: 65, max: 80)
+        case .status:
+            TableColumn("Status", value: \.status) { p in
+                AnyView(StatusBadge(status: p.status))
+            }
+            .width(min: 70, ideal: 84, max: 100)
+        case .signature:
+            TableColumn("Signature", value: \.signatureBadgeText) { p in
+                AnyView(
+                    Text(p.signatureBadgeText)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(p.signatureBadgeColor)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(p.signatureBadgeColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                )
+            }
+            .width(min: 80, ideal: 100)
+        case .ppid:
+            TableColumn("PPID", value: \.parentPid) { p in
+                AnyView(
+                    Text("\(p.parentPid)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                )
+            }
+            .width(min: 50, ideal: 60)
+        }
     }
 
     var body: some View {
         Table(displayProcesses, selection: $selectedPID, sortOrder: $sortOrder) {
-            TableColumn("PID", value: \.pid) { p in
-                Text("\(p.pid)").monospacedDigit()
-            }
-            .width(min: 50, ideal: 65, max: 80)
-
-            TableColumn("Name", value: \.name) { p in
-                HStack(spacing: 4) {
-                    Image(nsImage: IconProvider.shared.appIcon(for: p))
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 16, height: 16)
-                        .help(iconTooltip(for: p))
-                    Text(p.name).lineLimit(1)
-                }
-            }
-            .width(min: 120, ideal: 200)
-
-            TableColumn("CPU %", value: \.cpuUsage) { p in
-                HStack(spacing: 4) {
-                    Text(p.formattedCPU)
-                        .monospacedDigit()
-                        .foregroundStyle(cpuColor(p.cpuUsage))
-                    if processManager.historyTracker.hasMeaningfulCPU(for: p.pid) {
-                        SparklineView(
-                            values: processManager.historyTracker.cpuHistory(for: p.pid),
-                            color: cpuColor(p.cpuUsage)
-                        )
-                        .frame(width: 40, height: 14)
-                    }
-                }
-            }
-            .width(min: 100, ideal: 130, max: 160)
-
-            TableColumn("Memory", value: \.memoryUsage) { p in
-                Text(p.formattedMemory).monospacedDigit()
-            }
-            .width(min: 70, ideal: 90, max: 110)
-
-            TableColumn("Received", value: \.networkBytesReceived) { process in
-                Text(process.networkCounters.map { NetworkCounters.formatBytes($0.received) } ?? "—")
-                    .monospacedDigit()
-            }
-            .width(min: 75, ideal: 90)
-
-            TableColumn("Sent", value: \.networkBytesSent) { process in
-                Text(process.networkCounters.map { NetworkCounters.formatBytes($0.sent) } ?? "—")
-                    .monospacedDigit()
-            }
-            .width(min: 65, ideal: 80)
-
-            TableColumn("User", value: \.user)
-                .width(min: 60, ideal: 80, max: 120)
-
-            TableColumn("Threads", value: \.threadCount) { p in
-                Text("\(p.threadCount)").monospacedDigit()
-            }
-            .width(min: 55, ideal: 65, max: 80)
-
-            TableColumn("Status", value: \.status) { p in
-                Text(p.status.displayName)
-                    .foregroundStyle(p.status.color)
-                    .font(.caption)
-            }
-            .width(min: 60, ideal: 75, max: 90)
+            primaryColumns
+            secondaryColumns
         }
         .tableStyle(.inset(alternatesRowBackgrounds: true))
         .contextMenu(forSelectionType: Int32.self) { pids in
@@ -131,6 +288,27 @@ struct MiniBar: View {
                     .frame(width: max(0, geo.size.width * value))
             }
         }
+    }
+}
+
+// MARK: - Status Badge
+
+struct StatusBadge: View {
+    let status: ProcessStatus
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(status.color)
+                .frame(width: 5, height: 5)
+            Text(status.displayName)
+                .lineLimit(1)
+        }
+        .font(.caption2.weight(.medium))
+        .foregroundStyle(status.color)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 2)
+        .background(status.color.opacity(0.12), in: Capsule())
     }
 }
 

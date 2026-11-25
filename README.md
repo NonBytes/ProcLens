@@ -9,15 +9,33 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-macOS%2014%2B-blue" alt="macOS 14+">
+  <img src="https://img.shields.io/badge/platform-macOS%2014.4%2B-blue" alt="macOS 14.4+">
   <img src="https://img.shields.io/badge/arch-Apple%20Silicon-green" alt="Apple Silicon">
   <img src="https://img.shields.io/badge/swift-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/github/v/release/NonBytes/ProcLens" alt="Release">
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/proclens-main.png" width="880" alt="ProcLens Main Interface">
+</p>
+
 ---
 
 Native SwiftUI app for real-time process monitoring on macOS. View, search, sort, suspend, kill, and inspect every process running on your Mac.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/proclens-tree.png" width="880" alt="ProcLens Process Tree View">
+</p>
+<p align="center"><em>Process Tree View: Hierarchical parent-child relationship with full column sorting</em></p>
+
+<br>
+
+<p align="center">
+  <img src="docs/screenshots/proclens-network.png" width="880" alt="ProcLens Network Activity Monitor">
+</p>
+<p align="center"><em>Network Activity: Real-time throughput rates, bandwidth sparklines, and socket metrics</em></p>
 
 ## Features
 
@@ -27,7 +45,7 @@ Native SwiftUI app for real-time process monitoring on macOS. View, search, sort
 | **Sparkline Graphs** | Real-time CPU history per process, inline in the table |
 | **Process Tree** | Uses the same nine columns in the same order as List. Click a header to sort siblings and click again to reverse the order. Drag a header divider to resize its column. The root `launchd` stays first and starts expanded |
 | **Subprocesses** | Double-click a process in List or Tree, or right-click and choose **Show Subprocesses**, to open a resizable window |
-| **Inspector Panel** | Info, Network, Files, and Env tabs load for the selected process |
+| **Inspector Panel** | Info (Signature, Entitlements, Launch Origin), Modules (`vmmap`), Network, Files, and Env tabs load for the selected process |
 | **Network Connections** | Per-process TCP/UDP connections and listening ports |
 | **Network Activity** | Sort processes by bytes received or sent and view live transfer rates for processes reported by macOS |
 | **Open Files** | All file descriptors with search filter |
@@ -77,7 +95,7 @@ Use [XcodeGen](https://github.com/yonaskolb/XcodeGen) to regenerate the project 
 
 ## Requirements
 
-- macOS 14.0 (Sonoma) or later
+- macOS 14.4 (Sonoma) or later
 - Apple Silicon Mac. Intel Macs can use v1.0.2.
 
 ## Architecture
